@@ -3,7 +3,7 @@
 	"module": "src/main.ts",
 	"scripts": {
 		"dev": "bunx rolldown -c",
-		"prod": "tsc --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c"
+		"bundle": "tsc --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c"
 	},
 	"type": "module",
 	"devDependencies": {

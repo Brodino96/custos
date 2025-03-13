@@ -12,24 +12,21 @@ export default class TempRole {
 	constructor(bot: Bot) {
 		this.bot = bot
 
+		if (!this.bot.guild) {
+			console.error("Failed to get guild, gracefully crashing this shit")
+			process.exit(1)
+		}
+	}
+
+	// Creates the database tables and starts the checking process
+	public async init() {
 		for (const roleId of Config.tempRole.rolesId) {
-			const role = this.bot.guild?.roles.cache.get(roleId)
+			const role = await this.bot.guild?.roles.fetch(roleId)
 			if (role) {
 				this.roles.push(role)
 			}
 		}
-		this.init()
-	}
-
-	// Creates the database tables and starts the checking process
-	private async init() {
-		await sql`
-            CREATE TABLE IF NOT EXISTS temp_roles (
-                user_id TEXT,
-                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-            )
-        `
-
+		this.checkRoles()
 		setInterval(() => {
 			this.checkRoles()
 		}, this.checkInterval)
@@ -37,9 +34,10 @@ export default class TempRole {
 
 	// Saves user into database and adds the roles
 	public async memberJoined(member: GuildMember) {
+		console.log("Member joind")
 		try {
 			await sql`
-                INSERT INTO temp_roles (user_id, role_assigned_at) 
+                INSERT INTO temp_roles (user_id, created_at) 
                 VALUES (${member.id}, NOW())
             `
 		} catch (error) {
@@ -62,15 +60,16 @@ export default class TempRole {
 
 	// Deletes all expired users from database and removes their roles
 	private async checkRoles() {
+		console.log("Checking roles")
 		try {
 			const deletedUsers = await sql`
                 DELETE FROM temp_roles
                 WHERE created_at < NOW() - INTERVAL '${this.timeToRemove} seconds'
                 RETURNING user_id
             `
-
-			for (const userId of deletedUsers) {
-				const member = await this.bot.guild?.members.fetch(userId)
+			
+			for (const user of deletedUsers) {
+				const member = await this.bot.guild?.members.fetch(user.user_id)
 				if (!member) {
 					return
 				}

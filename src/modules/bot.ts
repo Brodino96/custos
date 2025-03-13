@@ -8,22 +8,24 @@ export default class Bot {
 
 	constructor() {
 		this.client = new Client({
-			intents: ["Guilds", "GuildMessages", "GuildMembers", "DirectMessages", "MessageContent"],
+			intents: [
+				"Guilds", "GuildMessages", "GuildMembers", "DirectMessages", "MessageContent"
+			],
 		})
+	}
 
-		this.client.once("ready", async () => {
-			this.init()
-		})
-
-		this.client.login(Config.token)
+	public async login() {
+		await this.client.login(Config.token)
+		await this.init()
 	}
 
 	private async init() {
 		console.log(`Bot ready! Logged in as ${this.client.user?.tag}`)
-		this.guild = this.client.guilds.cache.get(Config.guildId)
+		this.guild = await this.client.guilds.fetch(Config.guildId)
 	}
 
 	public async addRoles(member: GuildMember, roles: Array<Role>) {
+		console.log(`Adding roles to ${member.id}`)
 		for (const role of roles) {
 			member.roles.add(role)
 		}

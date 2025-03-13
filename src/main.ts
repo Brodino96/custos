@@ -3,16 +3,21 @@ import Bot from "./modules/bot"
 import TempRole from "./modules/tempRole"
 
 class Main {
-	private readonly bot = new Bot()
-	private readonly tempRole = new TempRole(this.bot)
+	private bot: Bot = new Bot()
+	private tempRole: TempRole | undefined
 
 	public async init() {
+
+		await this.bot.login()
+		this.tempRole = new TempRole(this.bot)
+		await this.tempRole.init()
+		
 		this.bot.client.on("guildMemberAdd", (member: GuildMember) => {
-			this.tempRole.memberJoined(member)
+			this.tempRole?.memberJoined(member)
 		})
 
 		this.bot.client.on("guildMemberRemove", (member: GuildMember | PartialGuildMember) => {
-			this.tempRole.memberLeft(member.id)
+			this.tempRole?.memberLeft(member.id)
 		})
 	}
 }

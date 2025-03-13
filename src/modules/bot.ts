@@ -1,4 +1,5 @@
-import { Client, Guild, GuildMember, Role, type PartialGuildMember, type Snowflake } from "discord.js"
+import { Client } from "discord.js"
+import type { Guild, GuildMember, Role, PartialGuildMember} from "discord.js"
 import Config from "../utils/config"
 
 export default class Bot {

@@ -1,4 +1,5 @@
-import { Client, type Interaction, REST, Routes, ApplicationCommandType, SlashCommandBuilder, ContextMenuCommandBuilder } from 'discord.js';
+import { REST, Routes, ApplicationCommandType, SlashCommandBuilder, ContextMenuCommandBuilder } from 'discord.js'
+import type {  Client, Interaction } from "discord.js"
 import Config from '../utils/config'
 
 export default class CommandHandler {

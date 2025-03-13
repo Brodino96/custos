@@ -1,0 +1,8 @@
+token = ""
+guildId = ""
+clientId = ""
+
+[tempRole]
+rolesId = [ "" ]
+roleDuration = 72
+checkInterval = 2

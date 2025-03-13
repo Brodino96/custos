@@ -4,9 +4,9 @@ export default defineConfig([
 	{
 		input: "src/main.ts",
 		output: {
-			file: "dist/main.ts",
-			target: "esnext", // FiveM should use es2017
+			file: "dist/main.js",
+			target: "esnext",
 			minify: true,
-		},
+		}
 	},
 ])

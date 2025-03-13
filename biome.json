@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": [ "node_modules/*" ]
+		"ignore": ["node_modules/*"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -24,7 +24,14 @@
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double"
+			"quoteStyle": "double",
+			"semicolons": "asNeeded",
+			"bracketSpacing": true,
+			"trailingCommas": "all",
+			"arrowParentheses": "always",
+			"indentStyle": "tab",
+			"lineEnding": "lf",
+			"lineWidth": 200
 		}
 	}
 }

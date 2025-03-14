@@ -1,15 +1,6 @@
 import type { Snowflake } from "discord.js"
 import { load } from "js-toml"
-
-// Only ChatGPT | Michigan TypeScript could defeat TypeScript 
-type DeepReadonly<T> = {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	readonly [K in keyof T]: T[K] extends (...args: any[]) => any
-	  ? T[K] // If it's a function, keep it as is
-	  : T[K] extends object
-	  ? DeepReadonly<T[K]> // If it's an object or array, recurse
-	  : T[K]; // Otherwise, keep the property as is
-  };
+import type { DeepReadonly } from "./types"
 
 type ConfigType = DeepReadonly<{
 	token: string
@@ -17,7 +8,7 @@ type ConfigType = DeepReadonly<{
 	clientId: Snowflake
 	tempRole: {
 		enabled: boolean,
-		rolesId: ReadonlyArray<Snowflake>
+		rolesId: Array<Snowflake>
 		roleDuration: number
 		checkInterval: number
 	}

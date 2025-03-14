@@ -1,22 +1,12 @@
 import { sql } from "bun"
-import type { GuildMember, Role, Snowflake } from "discord.js"
+import type { GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
-import type Bot from "./bot"
+import { BotModule } from "./bot"
 
-export default class TempRole {
-	private readonly bot: Bot
+export default class TempRole extends BotModule {
 	private readonly roles: Array<Role> = []
 	private readonly checkInterval: number = Math.floor(Config.tempRole.checkInterval * 1000 * 60 * 100)
 	private readonly timeToRemove: number = Math.floor(Config.tempRole.roleDuration * 60 * 100)
-
-	constructor(bot: Bot) {
-		this.bot = bot
-
-		if (!this.bot.guild) {
-			console.error("Failed to get guild, gracefully crashing this shit")
-			process.exit(1)
-		}
-	}
 
 	// Creates the database tables and starts the checking process
 	public async init() {
@@ -48,13 +38,13 @@ export default class TempRole {
 	}
 
 	// Removes user from database
-	public async memberLeft(userId: Snowflake) {
+	public async memberLeft(member: GuildMember | PartialGuildMember) {
 		try {
 			await sql`
-                DELETE FROM temp_roles WHERE user_id = ${userId}
+                DELETE FROM temp_roles WHERE user_id = ${member.id}
             `
 		} catch (error) {
-			console.error(`Failed to remove user [${userId}] from database`, error)
+			console.error(`Failed to remove user [${member.id}] from database`, error)
 		}
 	}
 

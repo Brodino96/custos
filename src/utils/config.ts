@@ -16,6 +16,7 @@ type ConfigType = DeepReadonly<{
 	guildId: Snowflake
 	clientId: Snowflake
 	tempRole: {
+		enabled: boolean,
 		rolesId: ReadonlyArray<Snowflake>
 		roleDuration: number
 		checkInterval: number

@@ -1,6 +1,6 @@
-import type { GuildMember, PartialGuildMember } from "discord.js"
-import Bot from "./modules/bot"
+import { Bot } from "./modules/bot"
 import TempRole from "./modules/tempRole"
+import Config from "./utils/config"
 
 class Main {
 	private bot: Bot = new Bot()
@@ -8,17 +8,11 @@ class Main {
 
 	public async init() {
 
-		await this.bot.login()
-		this.tempRole = new TempRole(this.bot)
-		await this.tempRole.init()
-		
-		this.bot.client.on("guildMemberAdd", (member: GuildMember) => {
-			this.tempRole?.memberJoined(member)
-		})
+		if (Config.tempRole.enabled) {
+			this.bot.addModule(TempRole)
+		}
 
-		this.bot.client.on("guildMemberRemove", (member: GuildMember | PartialGuildMember) => {
-			this.tempRole?.memberLeft(member.id)
-		})
+		await this.bot.login()
 	}
 }
 

@@ -8,17 +8,19 @@ WORKDIR /usr/src/app
 FROM base AS install
 RUN mkdir -p /temp/dev
 COPY package.json bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+RUN cd /temp/dev && bun install --frozen-lockfile --production
 
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
 FROM base AS build
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
+RUN bun install --frozen-lockfile
 RUN bun bundle
 
 # copy production dependencies and source code into final image
 FROM base AS release
+COPY --from=install /temp/dev/node_modules node_modules
 COPY --from=build /usr/src/app/dist/* /usr/src/app/
 COPY config.toml /usr/src/app/config.toml
 

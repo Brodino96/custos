@@ -40,9 +40,7 @@ export default class TempRole extends BotModule {
 	// Removes user from database
 	public async memberLeft(member: GuildMember | PartialGuildMember) {
 		try {
-			await sql`
-                DELETE FROM temp_roles WHERE user_id = ${member.id}
-            `
+			await sql`DELETE FROM temp_roles WHERE user_id = ${member.id}`
 		} catch (error) {
 			console.error(`Failed to remove user [${member.id}] from database`, error)
 		}

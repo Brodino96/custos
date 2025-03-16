@@ -38,10 +38,10 @@ export class Bot {
 		return Promise.all(
 			this.modules.map(module => {
 				// This explicit casting helps TypeScript understand how to apply the arguments
-				const method = module[methodName] as (...methodArgs: Parameters<BotModule[T]>) => ReturnType<BotModule[T]>;
+				const method = module[methodName] as (...methodArgs: Parameters<BotModule[T]>) => ReturnType<BotModule[T]>
 				return method.apply(module, args) as ReturnType<BotModule[T]>;
 			})
-		);
+		)
 	  }
 
 	public async addModule(module: new (bot: Bot) => BotModule) {

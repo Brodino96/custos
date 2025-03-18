@@ -7,10 +7,27 @@ type ConfigType = DeepReadonly<{
 	guildId: Snowflake
 	clientId: Snowflake
 	tempRole: {
-		enabled: boolean,
+		enabled: boolean
 		rolesId: Array<Snowflake>
 		roleDuration: number
 		checkInterval: number
+	}
+	moderation: {
+		enabled: boolean
+		roles: Array<Snowflake>
+		checkInterval: number
+		warn: {
+			rolesId: Array<Snowflake>
+			banAfterLimit: boolean
+			banMessage: string
+			canExpire: boolean
+			expiresAfter: number
+		}
+		// mute: {
+		// 	roleId: Snowflake
+		// 	canExpire: boolean
+		// 	expiresAfter: number
+		// }
 	}
 }>
 

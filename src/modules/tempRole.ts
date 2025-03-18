@@ -34,7 +34,7 @@ export default class TempRole extends BotModule {
 			console.error(`Failed to add user [${member.id}] into database`, error)
 		}
 
-		this.bot.addRoles(member, this.roles)
+		member.roles.add(this.roles)
 	}
 
 	// Removes user from database
@@ -61,7 +61,7 @@ export default class TempRole extends BotModule {
 				if (!member) {
 					return
 				}
-				this.bot.removeRoles(member, this.roles)
+				member.roles.remove(this.roles)
 			}
 		} catch (error) {
 			console.error("Failed to delete users from database", error)

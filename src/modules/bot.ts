@@ -1,6 +1,7 @@
 import { Client } from "discord.js"
-import type { Guild, GuildMember, PartialGuildMember, Role } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
+import type { BotModuleMethod } from "../utils/types"
 
 export class Bot {
 	public client: Client
@@ -42,7 +43,7 @@ export class Bot {
 				return method.apply(module, args) as ReturnType<BotModule[T]>;
 			})
 		)
-	  }
+	}
 
 	public async addModule(module: new (bot: Bot) => BotModule) {
 		this.modules.push(new module(this))
@@ -56,18 +57,22 @@ export class Bot {
 		this.client.on("guildMemberRemove", async (member: GuildMember | PartialGuildMember) => {
 			this.callModuleMethod("memberLeft", member)
 		})
+
+		//@ts-ignore
+		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
+			this.callModuleMethod("contextInteraction", interaction)
+		})
 	}
 
-	public async addRoles(member: GuildMember, roles: Array<Role>) {
-		for (const role of roles) {
-			member.roles.add(role)
+	public async isModerator(member: GuildMember | PartialGuildMember) {
+		let toReturn = false
+		for (const role of Config.moderation.roles) {
+			if (member.roles.cache.has(role)) {
+				toReturn = true
+				break
+			}
 		}
-	}
-
-	public async removeRoles(member: GuildMember | PartialGuildMember, roles: Array<Role>) {
-		for (const role of roles) {
-			member.roles.remove(role)
-		}
+		return toReturn
 	}
 }
 

@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS temp_roles (
-    user_id TEXT,
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )

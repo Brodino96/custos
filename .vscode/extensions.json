@@ -1,6 +1,5 @@
 {
 	"recommendations": [
-		"biomejs.biome",
 		"tamasfe.even-better-toml"
 	]
 }

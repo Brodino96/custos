@@ -1,9 +1,12 @@
 import { sql } from "bun"
-import type { GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
 import { BotModule } from "./bot"
 
 export default class TempRole extends BotModule {
+	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {
+		
+	}
 	private readonly roles: Array<Role> = []
 	private readonly checkInterval: number = Math.floor(Config.tempRole.checkInterval * 1000 * 60 * 100)
 	private readonly timeToRemove: number = Math.floor(Config.tempRole.roleDuration * 60 * 100)

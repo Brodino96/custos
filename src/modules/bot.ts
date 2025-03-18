@@ -82,11 +82,5 @@ export abstract class BotModule {
 
 	abstract memberJoined(member: GuildMember): Promise<void>
 	abstract memberLeft(member: GuildMember | PartialGuildMember): Promise<void>
+	abstract contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void>
 }
-
-type MethodOf<T> = {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	[K in keyof T]: T[K] extends (...args: any[]) => any ? K : never;
-}[keyof T]
-
-type BotModuleMethod = MethodOf<BotModule>

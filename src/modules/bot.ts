@@ -1,5 +1,5 @@
 import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
 import type { BotModuleMethod } from "../utils/types"
 
@@ -25,10 +25,6 @@ export class Bot {
 		this.guild = await this.client.guilds.fetch(Config.guildId)
 		this.handleEvents()
 	}
-
-	// private callModuleMethod<T extends BotModuleMethod>(methodName: T, ...args:Parameters<BotModule[T]>): Promise<Awaited<ReturnType<BotModule[T]>>[]> {
-	// 	return Promise.all(this.modules.map(module => module[methodName].apply(module, args) as ReturnType<BotModule[T]>))
-	// }
 
 	/**
 	 * This is cursed, do not try and modify this shit

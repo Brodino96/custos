@@ -1,12 +1,12 @@
 import { sql } from "bun"
-import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { ContextMenuCommandInteraction, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
 import { BotModule } from "./bot"
+import { tryCatch } from "../utils/trycatch"
 
 export default class TempRole extends BotModule {
-	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {
-		
-	}
+	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {}
+
 	private readonly roles: Array<Role> = []
 	private readonly checkInterval: number = Math.floor(Config.tempRole.checkInterval * 1000 * 60 * 100)
 	private readonly timeToRemove: number = Math.floor(Config.tempRole.roleDuration * 60 * 100)
@@ -28,13 +28,14 @@ export default class TempRole extends BotModule {
 	// Saves user into database and adds the roles
 	public async memberJoined(member: GuildMember) {
 		console.log("Member joind")
-		try {
-			await sql`
-                INSERT INTO temp_roles (user_id, created_at) 
-                VALUES (${member.id}, NOW())
-            `
-		} catch (error) {
+		const { error } = await tryCatch(sql`
+			INSERT INTO temp_roles (user_id, created_at) 
+			VALUES (${member.id}, NOW())
+		`)
+
+		if (error) {
 			console.error(`Failed to add user [${member.id}] into database`, error)
+			return
 		}
 
 		member.roles.add(this.roles)
@@ -42,32 +43,35 @@ export default class TempRole extends BotModule {
 
 	// Removes user from database
 	public async memberLeft(member: GuildMember | PartialGuildMember) {
-		try {
-			await sql`DELETE FROM temp_roles WHERE user_id = ${member.id}`
-		} catch (error) {
+		const { error } = await tryCatch(sql`DELETE FROM temp_roles WHERE user_id = ${member.id}`)
+
+		if (error) {
 			console.error(`Failed to remove user [${member.id}] from database`, error)
+			return
 		}
 	}
 
 	// Deletes all expired users from database and removes their roles
 	private async checkRoles() {
 		console.log("Checking roles")
-		try {
-			const deletedUsers = await sql`
-                DELETE FROM temp_roles
-                WHERE created_at < NOW() - INTERVAL '${this.timeToRemove} seconds'
-                RETURNING user_id
-            `
-			
-			for (const user of deletedUsers) {
-				const member = await this.bot.guild?.members.fetch(user.user_id)
-				if (!member) {
-					return
-				}
-				member.roles.remove(this.roles)
-			}
-		} catch (error) {
+
+		const { data: deletedUsers, error } = await tryCatch(sql`
+			DELETE FROM temp_roles
+			WHERE created_at < NOW() - INTERVAL '${this.timeToRemove} seconds'
+			RETURNING user_id
+		`)
+
+		if (error) {
 			console.error("Failed to delete users from database", error)
+			return
+		}
+
+		for (const user of deletedUsers) {
+			const member = await this.bot.guild?.members.fetch(user.user_id)
+			if (!member) {
+				return
+			}
+			member.roles.remove(this.roles)
 		}
 	}
 }

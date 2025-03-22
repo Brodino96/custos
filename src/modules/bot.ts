@@ -2,6 +2,9 @@ import { Client } from "discord.js"
 import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
 import type { BotModuleMethod } from "../utils/types"
+import Logger from "../utils/logger"
+
+const logger = new Logger()
 
 export class Bot {
 	public client: Client
@@ -47,6 +50,7 @@ export class Bot {
 
 	private handleEvents() {
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
+			logger.info(`Member [${member.id}] joined`)
 			this.callModuleMethod("memberJoined", member)
 		})
 

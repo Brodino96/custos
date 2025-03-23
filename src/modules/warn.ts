@@ -35,13 +35,13 @@ export default class Warn extends BotModule {
     }
 
     private async registerCommands() {
-        this.bot.client.application?.commands.create({
+        this.bot.guild?.commands.create({
             name: "Remove Warn",
             type: ApplicationCommandType.User,
         })
-        
-        this.bot.client.application?.commands.create({
-            name: "Warn",
+
+        this.bot.guild?.commands.create({
+            name: "Add Warn",
             type: ApplicationCommandType.User,
         })
     }
@@ -84,14 +84,17 @@ export default class Warn extends BotModule {
             return
         }
 
+        //TODO Save commands id to do this switch
         switch (interaction.commandName) {
-            case "Warn":
+            case "Add Warn":
                 await this.addWarn(targetMember, interaction)
                 break
 
             case "Remove Warn":
                 await this.removeWarn(targetMember, interaction)
                 break
+            default:
+                console.log("aaaaaaaaaaaaaaaaa")
         }
     }
 
@@ -107,15 +110,17 @@ export default class Warn extends BotModule {
             logger.error("Error fetching data from database")
         }
 
-        logger.info(`${member.displayName} joined with ${data[0].warn_count} warn`)
+        const numberOfWarns = parseInt(data[0].warn_count)
 
-        if (data[0].warn_count == 0) {
+        logger.info(`${member.displayName} joined with ${numberOfWarns} warn`)
+
+        if (numberOfWarns == 0) {
             logger.info("Player had now warns")
             return
         }
 
         for (const role of this.roles) {
-            for (let i = 1; i <= data[0].warn_count; i++) {
+            for (let i = 0; i < numberOfWarns; i++) {
                 await member.roles.add(role)
             }
 

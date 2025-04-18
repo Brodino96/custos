@@ -1,7 +1,7 @@
 import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember } from "discord.js"
+import type { BotModuleMethod } from "../utils/types/botmodule"
 import Config from "../utils/config"
-import type { BotModuleMethod } from "../utils/types"
 import logger from "../utils/logger"
 
 export class Bot {
@@ -11,58 +11,37 @@ export class Bot {
 
 	constructor() {
 		this.client = new Client({
-			intents: ["Guilds", "GuildMessages", "GuildMembers", "DirectMessages", "MessageContent"],
+			intents: ["Guilds", "GuildMessages", "GuildMembers", "MessageContent"],
 		})
 	}
 
-	public async login() {
+	public async init() {
 		await this.client.login(Config.token)
-		await this.init()
-		this.callModuleMethod("init")
-	}
-
-	private async init() {
 		console.log(`Bot ready! Logged in as ${this.client.user?.tag}`)
 		this.guild = await this.client.guilds.fetch(Config.guildId)
-		this.handleEvents()
+
+		this.callModule("init")
+
+		this.registerEvents()
 	}
 
-	/**
-	 * This is cursed, do not try and modify this shit
-	 * It has a mind of his own
-	 * This is the type of shit Microsoft sniffs before releasing another low tier Xbox
-	 */
-	private callModuleMethod<T extends BotModuleMethod>(methodName: T, ...args:Parameters<BotModule[T]>): Promise<Awaited<ReturnType<BotModule[T]>>[]> {
-		return Promise.all(
-			this.modules.map(module => {
-				// This explicit casting helps TypeScript understand how to apply the arguments
-				const method = module[methodName] as (...methodArgs: Parameters<BotModule[T]>) => ReturnType<BotModule[T]>
-				return method.apply(module, args) as ReturnType<BotModule[T]>;
-			})
-		)
-	}
-
-	public async addModule(module: new (bot: Bot) => BotModule) {
-		this.modules.push(new module(this))
-	}
-
-	private handleEvents() {
+	private registerEvents() {
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
 			logger.info(`Member [${member.id}] joined`)
-			this.callModuleMethod("memberJoined", member)
+			this.callModule("memberJoined", member)
 		})
 
 		this.client.on("guildMemberRemove", async (member: GuildMember | PartialGuildMember) => {
-			this.callModuleMethod("memberLeft", member)
+			this.callModule("memberLeft", member)
 		})
 
 		//@ts-ignore
 		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
-			this.callModuleMethod("contextInteraction", interaction)
+			this.callModule("contextInteraction", interaction)
 		})
 		
 		this.client.on("messageCreate", async (message: Message) => {
-			this.callModuleMethod("messageCreate", message)
+			this.callModule("messageCreate", message)
 		})
 	}
 
@@ -75,6 +54,29 @@ export class Bot {
 			}
 		}
 		return toReturn
+	}
+
+	/**
+	 * This is cursed, do not try and modify this shit  
+	 * It has a mind of his own  
+	 * This is the type of shit Microsoft sniffs before releasing another low tier Xbox
+	 */
+	private callModule<T extends BotModuleMethod>(methodName: T, ...args:Parameters<BotModule[T]>): Promise<Awaited<ReturnType<BotModule[T]>>[]> {
+		return Promise.all(
+			this.modules.map(module => {
+				// This explicit casting helps TypeScript understand how to apply the arguments
+				const method = module[methodName] as (...methodArgs: Parameters<BotModule[T]>) => ReturnType<BotModule[T]>
+				return method.apply(module, args) as ReturnType<BotModule[T]>;
+			})
+		)
+	}
+
+	/**
+	 * Adds a module to the bot  
+	 * Ask [Dreaming-Codes](https://github.com/Dreaming-Codes) if you want to know how it works
+	 */
+	public async addModule(module: new (bot: Bot) => BotModule) {
+		this.modules.push(new module(this))
 	}
 }
 

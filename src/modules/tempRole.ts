@@ -6,8 +6,6 @@ import { tryCatch } from "../utils/trycatch"
 import logger from "../utils/logger"
 
 export default class TempRole extends BotModule {
-	async messageCreate(message: Message): Promise<void> {}
-	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {}
 
 	private readonly roles: Array<Role> = []
 	private readonly checkInterval: number = Math.floor(Config.tempRole.checkInterval * 1000 * 60 * 100)
@@ -89,4 +87,7 @@ export default class TempRole extends BotModule {
 			await member.roles.remove(this.roles)
 		}
 	}
+
+	async messageCreate(message: Message): Promise<void> {}
+	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {}
 }

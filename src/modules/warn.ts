@@ -7,7 +7,6 @@ import { tryCatch } from "../utils/trycatch"
 import logger from "../utils/logger"
 
 export default class Warn extends BotModule {
-    async messageCreate(message: Message): Promise<void> {}
 
     private readonly roles: Array<Role> = []
     private readonly checkInterval: number = Math.floor(Config.moderation.checkInterval * 1000 * 60 * 60)
@@ -125,8 +124,6 @@ export default class Warn extends BotModule {
 
         }
     }
-
-    async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> { return }
 
     private async removeWarn(member: GuildMember, interaction: UserContextMenuCommandInteraction) {
 
@@ -270,4 +267,7 @@ export default class Warn extends BotModule {
         logger.info("Warned removed for these players")
         logger.info(players)
     }
+
+    async messageCreate(message: Message): Promise<void> {}
+    async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
 }

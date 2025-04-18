@@ -21,7 +21,7 @@ class Main {
 			this.bot.addModule(AutoRole)
 		}
 
-		await this.bot.login()
+		await this.bot.init()
 	}
 }
 

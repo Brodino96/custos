@@ -1,6 +1,6 @@
 import type { Snowflake } from "discord.js"
 import { load } from "js-toml"
-import type { DeepReadonly } from "./types"
+import type { DeepReadonly } from "./types/readonly"
 
 type ConfigType = DeepReadonly<{
 	token: string

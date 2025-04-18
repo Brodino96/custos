@@ -26,8 +26,13 @@ export default class AutoRole extends BotModule {
 
         if (!member) { return }
 
+        if (member.user.createdAt > new Date('2024-12-01T00:00:00Z')) {
+            message.react("🟥")
+            return
+        }
+
         await member.roles.add(this.roles)
-        message.react("🌈")
+        message.react("🟩")
     }
 
     async memberJoined(member: GuildMember): Promise<void> {}

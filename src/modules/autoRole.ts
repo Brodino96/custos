@@ -27,7 +27,7 @@ export default class AutoRole extends BotModule {
         if (!member) { return }
 
         await member.roles.add(this.roles)
-        message.react(":upvote:")
+        message.react("🌈")
     }
 
     async memberJoined(member: GuildMember): Promise<void> {}

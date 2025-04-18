@@ -1,13 +1,12 @@
 import { sql } from "bun"
-import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember, Role } from "discord.js"
+import type { ContextMenuCommandInteraction, GuildMember, Message, PartialGuildMember, Role } from "discord.js"
 import Config from "../utils/config"
 import { BotModule } from "./bot"
 import { tryCatch } from "../utils/trycatch"
-import Logger from "../utils/logger"
-
-const logger = new Logger()
+import logger from "../utils/logger"
 
 export default class TempRole extends BotModule {
+	async messageCreate(message: Message): Promise<void> {}
 	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {}
 
 	private readonly roles: Array<Role> = []

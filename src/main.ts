@@ -1,3 +1,4 @@
+import AutoRole from "./modules/autoRole"
 import { Bot } from "./modules/bot"
 import TempRole from "./modules/tempRole"
 import Warn from "./modules/warn"
@@ -14,6 +15,10 @@ class Main {
 
 		if (Config.moderation.enabled) {
 			this.bot.addModule(Warn)
+		}
+
+		if (Config.autorole.enabled) {
+			this.bot.addModule(AutoRole)
 		}
 
 		await this.bot.login()

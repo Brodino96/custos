@@ -29,6 +29,11 @@ type ConfigType = DeepReadonly<{
 		// 	expiresAfter: number
 		// }
 	}
+	autorole: {
+		enabled: boolean
+		channel: Snowflake
+		rolesId: Array<Snowflake>
+	}
 }>
 
 const configData = await Bun.file("./config.toml").text()

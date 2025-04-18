@@ -20,3 +20,8 @@ banAfterLimit = false # If the bot should ban the user after reaching the maximu
 banMessage = "You've been warn one too many time"
 canExpire = true # If the warn is supposed to expire after a given amount of time
 expiresAfter = 72 # In hours, how much time until role expires
+
+[autorole]
+enabled = true
+channel = ""
+rolesId = [ "", "" ]

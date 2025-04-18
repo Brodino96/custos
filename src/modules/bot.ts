@@ -2,9 +2,7 @@ import { Client } from "discord.js"
 import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import Config from "../utils/config"
 import type { BotModuleMethod } from "../utils/types"
-import Logger from "../utils/logger"
-
-const logger = new Logger()
+import logger from "../utils/logger"
 
 export class Bot {
 	public client: Client
@@ -62,6 +60,10 @@ export class Bot {
 		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
 			this.callModuleMethod("contextInteraction", interaction)
 		})
+		
+		this.client.on("messageCreate", async (message: Message) => {
+			this.callModuleMethod("messageCreate", message)
+		})
 	}
 
 	public async isModerator(member: GuildMember | PartialGuildMember) {
@@ -88,4 +90,5 @@ export abstract class BotModule {
 	abstract memberJoined(member: GuildMember): Promise<void>
 	abstract memberLeft(member: GuildMember | PartialGuildMember): Promise<void>
 	abstract contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void>
+	abstract messageCreate(message: Message): Promise<void>
 }

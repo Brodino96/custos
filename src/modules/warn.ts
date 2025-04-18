@@ -1,14 +1,13 @@
 import { ApplicationCommandType, MessageFlags, UserContextMenuCommandInteraction } from "discord.js"
-import type { GuildMember, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import { BotModule } from "./bot"
 import Config from "../utils/config"
 import { sql } from "bun"
 import { tryCatch } from "../utils/trycatch"
-import Logger from "../utils/logger"
-
-const logger = new Logger()
+import logger from "../utils/logger"
 
 export default class Warn extends BotModule {
+    async messageCreate(message: Message): Promise<void> {}
 
     private readonly roles: Array<Role> = []
     private readonly checkInterval: number = Math.floor(Config.moderation.checkInterval * 1000 * 60 * 60)

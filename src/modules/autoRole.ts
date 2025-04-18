@@ -12,7 +12,7 @@ export default class AutoRole extends BotModule {
             const role = await this.bot.guild?.roles.fetch(roleId)
             if (role) {
                 this.roles.push(role)
-                logger.info(`Role: [${role.name}] added to tempRole list`)
+                logger.info(`Role: [${role.name}] added to autorole list`)
             }
         }
     }
@@ -27,7 +27,7 @@ export default class AutoRole extends BotModule {
         if (!member) { return }
 
         await member.roles.add(this.roles)
-        message.react("upvote")
+        message.react(":upvote:")
     }
 
     async memberJoined(member: GuildMember): Promise<void> {}

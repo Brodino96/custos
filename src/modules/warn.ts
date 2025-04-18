@@ -110,10 +110,9 @@ export default class Warn extends BotModule {
 
         const numberOfWarns = parseInt(data[0].warn_count)
 
-        logger.info(`${member.displayName} joined with ${numberOfWarns} warn`)
+        logger.info(`${member.displayName} has ${numberOfWarns} warn`)
 
         if (numberOfWarns == 0) {
-            logger.info("Player had now warns")
             return
         }
 

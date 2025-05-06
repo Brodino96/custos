@@ -23,16 +23,16 @@ type ConfigType = DeepReadonly<{
 			canExpire: boolean
 			expiresAfter: number
 		}
-		// mute: {
-		// 	roleId: Snowflake
-		// 	canExpire: boolean
-		// 	expiresAfter: number
-		// }
 	}
-	autorole: {
-		enabled: boolean
+	autoTempRole: {
+		enabled: true
 		channel: Snowflake
-		rolesId: Array<Snowflake>
+		roles: {
+			before: Array<Snowflake>
+			after: Array<Snowflake>
+		}
+		duration: number
+		interval: number
 	}
 }>
 

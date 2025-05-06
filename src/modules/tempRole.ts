@@ -57,13 +57,6 @@ export default class TempRole extends BotModule {
 	private async checkRoles() {
 		logger.info("Check new players")
 
-		const { data, error: aaa } = await tryCatch(sql`
-			SELECT * FROM temp_roles
-			WHERE created_at < NOW() - INTERVAL '${0} hours'
-		`)
-
-		console.log(data)
-
 		const { data: deletedUsers, error } = await tryCatch(sql`
 			DELETE FROM temp_roles
 			WHERE created_at < NOW() - INTERVAL '${Config.tempRole.roleDuration} hours'

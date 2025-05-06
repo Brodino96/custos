@@ -17,7 +17,7 @@ class Main {
 			this.bot.addModule(Warn)
 		}
 
-		if (Config.autorole.enabled) {
+		if (Config.autoTempRole.enabled) {
 			this.bot.addModule(AutoRole)
 		}
 

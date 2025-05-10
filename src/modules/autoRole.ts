@@ -64,7 +64,7 @@ export default class AutoRole extends BotModule {
 
 		const { data: deletedUsers, error } = await tryCatch(sql`
 			DELETE FROM auto_temp_roles
-			WHERE added_at < NOW() - INTERVAL '${Config.tempRole.roleDuration} hours'
+			WHERE added_at < NOW() - INTERVAL '${Config.autoTempRole.duration} hours'
 			RETURNING user_id
 		`)
 

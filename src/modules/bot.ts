@@ -13,7 +13,8 @@ export class Bot {
 
 	public moderators: Array<Role> = []
 
-	constructor() {
+	constructor(config: ConfigType) {
+		this.config = config
 		this.client = new Client({
 			intents: ["Guilds", "GuildMessages", "GuildMembers", "MessageContent"],
 		})

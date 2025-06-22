@@ -78,9 +78,11 @@ export class Bot {
 
 export abstract class BotModule {
 	protected bot: Bot
+	protected config: ConfigType
 
-	constructor(bot: Bot) {
+	constructor(bot: Bot, config: ConfigType) {
 		this.bot = bot
+		this.config = config
 	}
 
 	abstract init(): Promise<void>

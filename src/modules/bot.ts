@@ -9,6 +9,9 @@ export class Bot {
 	public client: Client
 	public guild: Guild | undefined
 	public modules: BotModule[] = []
+	public config: ConfigType
+
+	public moderators: Array<Role> = []
 
 	constructor() {
 		this.client = new Client({
@@ -73,8 +76,8 @@ export class Bot {
 	 * Adds a module to the bot  
 	 * Ask [Dreaming-Codes](https://github.com/Dreaming-Codes) if you want to know how it works
 	 */
-	public async addModule(module: new (bot: Bot) => BotModule) {
-		this.modules.push(new module(this))
+	public async addModule(module: new (bot: Bot, config: ConfigType) => BotModule) {
+		this.modules.push(new module(this, this.config))
 	}
 }
 

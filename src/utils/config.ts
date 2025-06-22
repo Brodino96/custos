@@ -1,4 +1,4 @@
-import type { Snowflake } from "discord.js"
+import type { Role, Snowflake } from "discord.js"
 import { load } from "js-toml"
 import type { DeepReadonly } from "./types/readonly"
 
@@ -30,6 +30,15 @@ type ConfigType = DeepReadonly<{
 		roles: {
 			before: Array<Snowflake>
 			after: Array<Snowflake>
+		}
+		duration: number
+		interval: number
+	}
+	manualRole: {
+		enabled: true
+		roles: {
+			before: Snowflake
+			after: Snowflake
 		}
 		duration: number
 		interval: number

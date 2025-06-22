@@ -39,10 +39,6 @@ export class Bot {
 		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
 			this.callModule("contextInteraction", interaction)
 		})
-		
-		this.client.on("messageCreate", async (message: Message) => {
-			this.callModule("messageCreate", message)
-		})
 	}
 
 	public async isModerator(member: GuildMember | PartialGuildMember) {

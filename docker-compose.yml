@@ -25,7 +25,7 @@ services:
     build: .
     restart: unless-stopped
     volumes:
-      - ./config.toml:/usr/src/app/config.toml
+      - ./config.json:/usr/src/app/config.json
     depends_on:
       db:
         condition: service_healthy

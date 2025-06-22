@@ -2,7 +2,7 @@ import { sql } from "bun"
 import type { ContextMenuCommandInteraction, GuildMember, Message, PartialGuildMember, Role } from "discord.js"
 import Config from "../utils/config"
 import { BotModule } from "./bot"
-import { tryCatch } from "../utils/trycatch"
+import { tryCatch } from "typecatch"
 import logger from "../utils/logger"
 
 export default class TempRole extends BotModule {
@@ -71,8 +71,9 @@ export default class TempRole extends BotModule {
 		}
 
 		for (const user of deletedUsers) {
-			const member = await this.bot.guild?.members.fetch(user.user_id)
-			if (!member) {
+			const { data: member, error } = await tryCatch(this.bot.guild!.members.fetch(user.user_id))
+			//const member = await this.bot.guild?.members.fetch(user.user_id)
+			if (!member || error) {
 				logger.error("User is somehow null")
 				return
 			}

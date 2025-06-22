@@ -3,7 +3,7 @@ import type { GuildMember, Message, PartialGuildMember, Role, Snowflake } from "
 import { BotModule } from "./bot"
 import Config from "../utils/config"
 import { sql } from "bun"
-import { tryCatch } from "../utils/trycatch"
+import { tryCatch } from "typecatch"
 import logger from "../utils/logger"
 
 export default class Warn extends BotModule {
@@ -253,7 +253,8 @@ export default class Warn extends BotModule {
         let players = ""
 
         for (const warn of warnToRemove) {
-            const member = await this.bot.guild?.members.fetch(warn.user_id)
+            const { data: member, error } = await tryCatch(this.bot.guild!.members.fetch(warn.user_id))
+            //const member = await this.bot.guild?.members.fetch(warn.user_id)
             if (!member) { return console.error("Failed to fetch member") }
 
             const rolesToRemove = this.roles.filter(role => member.roles.cache.has(role.id)).slice(0, Number(warn.count))

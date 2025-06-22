@@ -2,7 +2,7 @@ import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Me
 import { BotModule } from "./bot";
 import Config from "../utils/config";
 import logger from "../utils/logger";
-import { tryCatch } from "../utils/trycatch";
+import { tryCatch } from "typecatch";
 import { sql } from "bun";
 
 export default class AutoRole extends BotModule {
@@ -74,7 +74,8 @@ export default class AutoRole extends BotModule {
 		}
 
 		for (const user of deletedUsers) {
-			const member = await this.bot.guild?.members.fetch(user.user_id)
+            const { data: member, error } = await tryCatch(this.bot.guild!.members.fetch(user.user_id))
+			//const member = await this.bot.guild?.members.fetch(user.user_id)
 			if (!member) {
 				logger.error("User is somehow null")
 				return

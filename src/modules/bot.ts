@@ -48,14 +48,13 @@ export class Bot {
 	}
 
 	public async isModerator(member: GuildMember | PartialGuildMember) {
-		let toReturn = false
-		for (const role of Config.moderation.roles) {
+		for (const role of this.config.moderation.moderatorRoles) {
 			if (member.roles.cache.has(role)) {
 				toReturn = true
 				break
 			}
 		}
-		return toReturn
+		return false
 	}
 
 	/**

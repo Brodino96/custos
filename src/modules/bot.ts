@@ -21,9 +21,20 @@ export class Bot {
 	}
 
 	public async init() {
-		await this.client.login(Config.token)
-		console.log(`Bot ready! Logged in as ${this.client.user?.tag}`)
-		this.guild = await this.client.guilds.fetch(Config.guildId)
+		const { error: loginError } = await tryCatch(this.client.login(this.config.bot.token))
+		if (loginError) {
+			Logger.error(`Failed to login: ${loginError}`)
+			process.exit(0)
+		}
+
+		Logger.success(`Bot ready! Logged in as ${this.client.user?.tag}`)
+		
+		const { data: guild, error: guildError } = await tryCatch(this.client.guilds.fetch(this.config.bot.guildId))
+		if (guildError) {
+			Logger.error(`Failed to fetch the guild with id: ${this.config.bot.guildId}, ${guildError}`)
+			process.exit(0)
+		}
+		this.guild = guild
 
 		this.callModule("init")
 
@@ -32,7 +43,7 @@ export class Bot {
 
 	private registerEvents() {
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
-			logger.info(`Member [${member.id}] joined`)
+			Logger.info(`Member [${member.user.displayName}] joined the server`)
 			this.callModule("memberJoined", member)
 		})
 
@@ -50,8 +61,7 @@ export class Bot {
 	public async isModerator(member: GuildMember | PartialGuildMember) {
 		for (const role of this.config.moderation.moderatorRoles) {
 			if (member.roles.cache.has(role)) {
-				toReturn = true
-				break
+				return true
 			}
 		}
 		return false

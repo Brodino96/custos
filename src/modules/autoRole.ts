@@ -1,9 +1,9 @@
-import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Message, Role } from "discord.js";
-import { BotModule } from "./bot";
-import Config from "../utils/config";
-import logger from "../utils/logger";
-import { tryCatch } from "typecatch";
-import { sql } from "bun";
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Message, Role } from "discord.js"
+import { BotModule } from "./bot"
+import Config from "../utils/config"
+import logger from "../utils/logger"
+import { tryCatch } from "typecatch"
+import { sql } from "bun"
 
 export default class AutoRole extends BotModule {
     

@@ -1,8 +1,9 @@
-import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember } from "discord.js"
+import { Client, SnowflakeUtil } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import type { BotModuleMethod } from "../utils/types/botmodule"
-import Config from "../utils/config"
-import logger from "../utils/logger"
+import type { ConfigType } from "../utils/config"
+import { tryCatch } from "typecatch"
+import Logger from "../utils/logger"
 
 export class Bot {
 	public client: Client

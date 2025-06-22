@@ -1,25 +1,17 @@
-import AutoRole from "./modules/autoRole"
 import { Bot } from "./modules/bot"
-import TempRole from "./modules/tempRole"
-import Warn from "./modules/warn"
-import Config from "./utils/config"
+import joinRoles from "./modules/joinRoles"
+import loadConfig from "./utils/config"
 
 class Main {
-	private bot: Bot = new Bot()
+	public config = loadConfig()
+	private bot: Bot = new Bot(this.config)
 
 	public async init() {
 
-		if (Config.tempRole.enabled) {
-			this.bot.addModule(TempRole)
+		if (this.config.joinRoles.enabled) {
+			this.bot.addModule(joinRoles)
 		}
 
-		if (Config.moderation.enabled) {
-			this.bot.addModule(Warn)
-		}
-
-		if (Config.autoTempRole.enabled) {
-			this.bot.addModule(AutoRole)
-		}
 
 		await this.bot.init()
 	}

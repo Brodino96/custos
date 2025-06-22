@@ -32,6 +32,7 @@ export class Bot {
 		})
 
 		this.client.on("guildMemberRemove", async (member: GuildMember | PartialGuildMember) => {
+			Logger.info(`Member [${member.user.displayName}] left the server`)
 			this.callModule("memberLeft", member)
 		})
 

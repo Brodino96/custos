@@ -47,21 +47,43 @@ const DEFAULT_CONFIG: ConfigType = {
 
 	checkInterval: 2,
 
-	bot: { token: "PUT-YOUR-DISCORD-BOT-TOKEN-HERE", guildId: "000000000000000000", clientId: "000000000000000000" },
+	bot: {
+		token: "PUT-YOUR-DISCORD-BOT-TOKEN-HERE",
+		guildId: "111111111111111111",
+		clientId: "111111111111111111"
+	},
 
-	joinRoles: { enabled: true, roles: [], expires: true, duration: 30 },
+	joinRoles: {
+		enabled: true,
+		roles: [ "111111111111111111" ],
+		expires: true,
+		duration: 30
+	},
 
 	switchingRoles: {
 		enabled: true,
 		roles: {
-			"arole": [ "alot", "of", "roles" ]
+			"111111111111111111": [
+				"111111111111111111",
+				"111111111111111111",
+				"111111111111111111"
+			]
 		},
 		duration: 30
 	},
 
-	moderation: { moderatorRoles: [], warn: {
-			enabled: true, roles: [], canExpire: true, expiresAfter: 364, ban: {
-				enabled: false, banMessage: "You've been banned for reaching too many warns"
+	moderation: {
+		moderatorRoles: [
+			"111111111111111111"
+		],
+		warn: {
+			enabled: true,
+			roles: [ "111111111111111111" ],
+			canExpire: true,
+			expiresAfter: 364,
+			ban: {
+				enabled: false,
+				banMessage: "You've been banned for reaching too many warns"
 			}
 		}
 	}

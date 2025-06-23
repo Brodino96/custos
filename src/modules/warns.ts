@@ -5,52 +5,65 @@ import Config from "../utils/config"
 import { sql } from "bun"
 import { tryCatch } from "typecatch"
 import logger from "../utils/logger"
+import Logger from "../utils/logger"
 
-export default class Warn extends BotModule {
+export default class Warns extends BotModule {
 
     private readonly roles: Array<Role> = []
-    private readonly checkInterval: number = Math.floor(Config.moderation.checkInterval * 1000 * 60 * 60)
 
-    async init(): Promise<void> {
-        for (const roleId of Config.moderation.warn.rolesId) {
-			const role = await this.bot.guild?.roles.fetch(roleId)
-			if (role) {
-				this.roles.push(role)
-			}
-		}
+    public async init() {
+
+        for (const roleId of this.config.moderation.warn.roles) {
+            const role = await this.bot.guild?.roles.fetch(roleId)
+            if (!role) {
+                Logger.warn(`warns: Failed to fetch role with id: ${roleId}`)
+                continue
+            }
+            this.roles.push(role)
+            Logger.success(`warns: Added role [${role.name}] to list`)
+        }
 
         this.registerCommands()
 
-        if (!Config.moderation.warn.canExpire) {
-            logger.info("Warn expire is deactivated")
-            return
+        if (!this.config.moderation.warn.canExpire) {
+            return Logger.info(`warns: Warn expiry disabled`)
         }
         
 		this.checkRoles()
 		setInterval(() => {
 			this.checkRoles()
-		}, this.checkInterval)
+		}, Math.floor(this.config.checkInterval * 1000 * 60 * 60))
     }
 
+    /**
+     * Registers the commands to give or remove warns
+     */
     private async registerCommands() {
         this.bot.guild?.commands.create({
             name: "Remove Warn",
             type: ApplicationCommandType.User,
         })
-
+        
         this.bot.guild?.commands.create({
             name: "Add Warn",
             type: ApplicationCommandType.User,
         })
+
+        Logger.info("warns: Registered commands")
     }
 
-    async contextInteraction(interaction: UserContextMenuCommandInteraction): Promise<void> {
+    /**
+     * Handles the use of the commands
+     * @param interaction discord.js stuff
+     * @returns void
+     */
+    public async contextInteraction(interaction: UserContextMenuCommandInteraction): Promise<void> {
         if (!interaction.isContextMenuCommand()) { return }
 
         const member = await this.bot.guild?.members.fetch(interaction.user.id)
 
         if (!member) {
-            logger.error("User is null")
+            Logger.error(`warns: Command user is null`)
             await interaction.reply({
                 content: "Somehow you are not a user????",
                 flags: MessageFlags.Ephemeral
@@ -58,12 +71,12 @@ export default class Warn extends BotModule {
             return
         }
 
-        logger.info(`Command used by ${member.id}`)
+        Logger.info(`Command used by ${member.displayName}`)
 
         const targetMember = await this.bot.guild?.members.fetch(interaction.targetId)
 
         if (!targetMember) {
-            logger.error("Target member is null")
+            Logger.error("warns: Target member is null")
             await interaction.reply({
                 content: "Target member does not exists",
                 flags: MessageFlags.Ephemeral
@@ -71,10 +84,10 @@ export default class Warn extends BotModule {
             return
         }
 
-        logger.info(`Target member is: ${targetMember.displayName}`)
+        Logger.info(`Target member is: ${targetMember.displayName}`)
 
         if (!this.bot.isModerator(member) || !member.permissions.has("Administrator")) {
-            logger.error(`User does not have permissions`)
+            Logger.error(`warns: Command user does not have permissions`)
             await interaction.reply({
                 content: "You don't have permissions to use this command",
                 flags: MessageFlags.Ephemeral
@@ -91,49 +104,25 @@ export default class Warn extends BotModule {
             case "Remove Warn":
                 await this.removeWarn(targetMember, interaction)
                 break
-            default:
-                console.log("aaaaaaaaaaaaaaaaa")
         }
     }
 
-    async memberJoined(member: GuildMember): Promise<void> {
-
-        const { data, error } = await tryCatch(sql`
-            SELECT COUNT(*) AS warn_count
-            FROM warn
-            WHERE user_id = ${member.id}
-        `)
-
-        if (error) {
-            logger.error("Error fetching data from database")
-        }
-
-        const numberOfWarns = parseInt(data[0].warn_count)
-
-        logger.info(`${member.displayName} has ${numberOfWarns} warn`)
-
-        if (numberOfWarns == 0) {
-            return
-        }
-
-        for (const role of this.roles) {
-            for (let i = 0; i < numberOfWarns; i++) {
-                await member.roles.add(role)
-            }
-
-        }
-    }
-
+    /**
+     * Removes a warns to a user
+     * @param member the user
+     * @param interaction discord.js stuff
+     * @returns void
+     */
     private async removeWarn(member: GuildMember, interaction: UserContextMenuCommandInteraction) {
 
         const { data: warns, error } = await tryCatch(sql`
-            DELETE FROM warn WHERE id = (
-                SELECT id FROM warn WHERE user_id = ${member.id} ORDER BY given_at ASC LIMIT 1
+            DELETE FROM warns WHERE id = (
+                SELECT id FROM warns WHERE user_id = ${member.id} ORDER BY given_at ASC LIMIT 1
             )
         `)
 
         if (error) {
-            logger.error(`Failed to delete warn from the database ${error}`)
+            Logger.error(`warns: Failed to delete warn from the database, ${error}`)
             await interaction.reply({
                 content: "Failed to remove warn",
                 flags: MessageFlags.Ephemeral
@@ -141,7 +130,7 @@ export default class Warn extends BotModule {
         }
 
         if (!warns) {
-            logger.info("User has no warn")
+            Logger.info(`warns: User [${member.displayName}] had no warns`)
             await interaction.reply({
                 content: "User has no warn",
                 flags: MessageFlags.Ephemeral
@@ -161,13 +150,19 @@ export default class Warn extends BotModule {
         }
     }
 
+    /**
+     * Adds a warns to a user
+     * @param member the user
+     * @param interaction discord.js stuff
+     * @returns void
+     */
     private async addWarn(member: GuildMember, interaction: UserContextMenuCommandInteraction) {
 
         const { data: warns, error } = await tryCatch(sql`
             WITH warn_count AS (
-                SELECT COUNT(*) AS count FROM warn WHERE user_id = ${member.id}
+                SELECT COUNT(*) AS count FROM warns WHERE user_id = ${member.id}
             ), inserted AS (
-                INSERT INTO warn (user_id)
+                INSERT INTO warns (user_id)
                 SELECT ${member.id}
                 WHERE (SELECT count FROM warn_count) < ${this.roles.length}
                 RETURNING 1
@@ -179,7 +174,7 @@ export default class Warn extends BotModule {
         `)
 
         if (error) {
-            console.log("Failed to add warn")
+            Logger.error(`warns: Failed to add warn, ${error}`)
             return await interaction.reply({
                 content: "Unable to add warn",
                 flags: MessageFlags.Ephemeral
@@ -190,9 +185,9 @@ export default class Warn extends BotModule {
 
         if (count == 0) {
 
-            if (Config.moderation.warn.banAfterLimit) {
+            if (this.config.moderation.warn.ban.enabled) {
                 await this.removeDatabaseWarns(member.id)
-                await member.ban({ reason: Config.moderation.warn.banMessage })
+                await member.ban({ reason: this.config.moderation.warn.ban.banMessage})
                 await interaction.reply({
                     content: "Max number of warn reached, user banned",
                     flags: MessageFlags.Ephemeral
@@ -219,43 +214,87 @@ export default class Warn extends BotModule {
         })
     }
 
+    /**
+     * Removed all warns for a specific user
+     * @param id user id
+     * @returns void
+     */
     private async removeDatabaseWarns(id: Snowflake) {
         const { error } = await tryCatch(sql`
-            DELETE FROM warn WHERE user_id = ${id}
+            DELETE FROM warns WHERE user_id = ${id}
         `)
 
         if (error) {
-            logger.error(`Failed to delete warns from database for user ${id}`)
+            return Logger.error(`warns: Failed to delete warns from database for user ${id}, ${error}`)
         }
     }
 
+    /**
+     * Checks if user had any warn
+     * @param member 
+     * @returns 
+     */
+    async memberJoined(member: GuildMember): Promise<void> {
+
+        const { data, error } = await tryCatch(sql`
+            SELECT COUNT(*) AS warn_count
+            FROM warns
+            WHERE user_id = ${member.id}
+        `)
+
+        if (error) {
+            return Logger.error("warns: Failed to fetch data from database")
+        }
+
+        const numberOfWarns = parseInt(data[0].warn_count)
+
+        Logger.info(`${member.displayName} has ${numberOfWarns} warn`)
+
+        if (numberOfWarns == 0) {
+            return
+        }
+
+        for (const role of this.roles) {
+            for (let i = 0; i < numberOfWarns; i++) {
+                await member.roles.add(role)
+            }
+
+        }
+    }
+
+    /**
+     * Periodically checks if the warns are expired
+     * @returns void
+     */
     private async checkRoles() {
 
-        logger.info("Checking warns")
+        Logger.info(`warns: Checking...`)
 
         const { data: warnToRemove, error } = await tryCatch(sql`
             WITH deleted_warns AS (
-                DELETE FROM warn WHERE given_at <= NOW() - INTERVAL '${Config.moderation.warn.expiresAfter} hours' RETURNING user_id
+                DELETE FROM warns WHERE given_at <= NOW() - INTERVAL '${this.config.moderation.warn.expiresAfter} days' RETURNING user_id
             )
             SELECT user_id, COUNT(*) FROM deleted_warns GROUP BY user_id
         `)
 
         if (error) {
-            logger.error(`Failed to delete users from database ${error}`)
-            return
+            return Logger.error(`warns: Failed to delete users from database, ${error}`)
         }
 
         if (warnToRemove.length <= 0) {
-            logger.info("No warn are due to be removed")
-            return
+            return Logger.info("warns: No warn are due to be removed")
         }
 
         let players = ""
 
         for (const warn of warnToRemove) {
             const { data: member, error } = await tryCatch(this.bot.guild!.members.fetch(warn.user_id))
-            //const member = await this.bot.guild?.members.fetch(warn.user_id)
-            if (!member) { return console.error("Failed to fetch member") }
+            if (error) { continue }
+            
+            if (!member) {
+                Logger.error(`warns: Failed to fetch member [${warn.user_id}], he probably left the server while the bot wasn't active`)
+                continue
+            }
 
             const rolesToRemove = this.roles.filter(role => member.roles.cache.has(role.id)).slice(0, Number(warn.count))
             if (rolesToRemove.length > 0) {
@@ -264,8 +303,7 @@ export default class Warn extends BotModule {
             players += `${member.displayName} (${member.user.username}), `
         }
 
-        logger.info("Warned removed for these players")
-        logger.info(players)
+        Logger.info(`warns: Removed warns for the players:\n${players}`)
     }
 
     async messageCreate(message: Message): Promise<void> {}

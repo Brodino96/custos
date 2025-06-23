@@ -47,48 +47,22 @@ export type ConfigType = DeepReadonly<{
 	}
 }>
 
-const CONFIG_PATH = join(__dirname, "config.json")
+const CONFIG_PATH = join(__dirname, "config/config.json")
 const DEFAULT_CONFIG: ConfigType = {
 
 	checkInterval: 2,
 
-	bot: {
-		token: "PUT-YOUR-DISCORD-BOT-TOKEN-HERE",
-		guildId: "000000000000000000",
-		clientId: "000000000000000000",
-	},
+	bot: { token: "PUT-YOUR-DISCORD-BOT-TOKEN-HERE", guildId: "000000000000000000", clientId: "000000000000000000" },
 
-	moderation: {
-		moderatorRoles: [],
-		warn: {
-			enabled: true,
-			roles: [],
-			canExpire: true,
-			expiresAfter: 364,
-			ban: {
-				enabled: false,
-				maxWarns: 3,
-				banMessage: "You've been banned for reaching too many warns"
+	joinRoles: { enabled: true, roles: [], expires: true, duration: 30 },
+
+	switchingRole: { enabled: true, roles: [ { before: "", after: [] } ], duration: 30, },
+
+	moderation: { moderatorRoles: [], warn: {
+			enabled: true, roles: [], canExpire: true, expiresAfter: 364, ban: {
+				enabled: false, maxWarns: 3, banMessage: "You've been banned for reaching too many warns"
 			}
 		}
-	},
-
-	switchingRole: {
-		enabled: true,
-		roles: [
-			{
-				before: "",
-				after: []
-			}
-		],
-		duration: 30,
-	},
-
-	joinRoles: {
-		enabled: true,
-		roles: [],
-		expires: true,
-		duration: 30,
 	}
 } as const
 
@@ -102,12 +76,5 @@ export default function loadConfig(): ConfigType {
 
 	const file = readFileSync(CONFIG_PATH, "utf8")
 
-	const { data, error } = tryCatch(JSON.parse(file))
-
-	if (error) {
-		Logger.error(`config.json is not a valid JSON: ${error}`)
-		process.exit(1)
-	}
-
-	return data as ConfigType
+	return JSON.parse(file) as ConfigType
 }

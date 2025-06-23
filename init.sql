@@ -4,15 +4,15 @@ CREATE TABLE IF NOT EXISTS warns (
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS joinRoles (
+CREATE TABLE IF NOT EXISTS join_roles (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS switchingRole (
+CREATE TABLE IF NOT EXISTS switching_roles (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
-    role_to_remove TEXT NOT NULL,
+    role_id TEXT NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )

@@ -3,7 +3,6 @@ import type { DeepReadonly } from "./types/readonly"
 import { join } from "path"
 import { existsSync, readFileSync, writeFileSync } from "fs"
 import Logger from "./logger"
-import { tryCatch } from "typecatch"
 
 export type ConfigType = DeepReadonly<{
 
@@ -24,18 +23,14 @@ export type ConfigType = DeepReadonly<{
 			expiresAfter: number
 			ban: {
 				enabled: boolean
-				maxWarns: number
 				banMessage: string
 			}
 		}
 	}
 
-	switchingRole: {
+	switchingRoles: {
 		enabled: true
-		roles: Array<{
-			before: Snowflake
-			after: Array<Snowflake>
-		}>
+		roles: Record<Snowflake, Array<Snowflake>>
 		duration: number
 	}
 
@@ -56,11 +51,17 @@ const DEFAULT_CONFIG: ConfigType = {
 
 	joinRoles: { enabled: true, roles: [], expires: true, duration: 30 },
 
-	switchingRole: { enabled: true, roles: [ { before: "", after: [] } ], duration: 30, },
+	switchingRoles: {
+		enabled: true,
+		roles: {
+			"arole": [ "alot", "of", "roles" ]
+		},
+		duration: 30
+	},
 
 	moderation: { moderatorRoles: [], warn: {
 			enabled: true, roles: [], canExpire: true, expiresAfter: 364, ban: {
-				enabled: false, maxWarns: 3, banMessage: "You've been banned for reaching too many warns"
+				enabled: false, banMessage: "You've been banned for reaching too many warns"
 			}
 		}
 	}
@@ -69,7 +70,7 @@ const DEFAULT_CONFIG: ConfigType = {
 export default function loadConfig(): ConfigType {
 
 	if (!existsSync(CONFIG_PATH)) {
-		writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 2))
+		writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4))
 		Logger.warn(`No config.json found. A template has been created at\n${CONFIG_PATH}\nFill it in and restart the application`)
 		return DEFAULT_CONFIG
 	}

@@ -38,7 +38,7 @@ export default class joinRoles extends BotModule {
 	public async memberJoined(member: GuildMember) {
 
 		const { error } = await tryCatch(sql`
-			INSERT INTO joinRoles (user_id, given_at)
+			INSERT INTO join_roles (user_id, given_at)
 			VALUES (${member.id}, NOW())
 		`)
 
@@ -56,7 +56,7 @@ export default class joinRoles extends BotModule {
 	 * @returns void
 	 */
 	public async memberLeft(member: GuildMember | PartialGuildMember) {
-		const { error } = await tryCatch(sql`DELETE FROM joinRoles WHERE user_id = ${member.id}`)
+		const { error } = await tryCatch(sql`DELETE FROM join_roles WHERE user_id = ${member.id}`)
 
 		if (error) {
 			Logger.error(`joinRoles: Failed to remove user [${member.displayName}] from database: ${error}`)
@@ -75,8 +75,8 @@ export default class joinRoles extends BotModule {
 		Logger.info("joinRoles: Checking...")
 
 		const { data: deletedUsers, error } = await tryCatch(sql`
-			DELETE FROM joinRoles
-			WHERE given_at < NOW() - INTERVAL '${this.config.joinRoles.duration} days'
+			DELETE FROM join_roles
+			WHERE given_at < NOW() - (${this.config.joinRoles.duration} * INTERVAL '1 days')
 			RETURNING user_id
 		`)
 

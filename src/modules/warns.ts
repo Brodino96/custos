@@ -1,10 +1,8 @@
 import { ApplicationCommandType, MessageFlags, UserContextMenuCommandInteraction } from "discord.js"
 import type { GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import { BotModule } from "./bot"
-import Config from "../utils/config"
 import { sql } from "bun"
 import { tryCatch } from "typecatch"
-import logger from "../utils/logger"
 import Logger from "../utils/logger"
 
 export default class Warns extends BotModule {
@@ -71,8 +69,6 @@ export default class Warns extends BotModule {
             return
         }
 
-        Logger.info(`Command used by ${member.displayName}`)
-
         const targetMember = await this.bot.guild?.members.fetch(interaction.targetId)
 
         if (!targetMember) {
@@ -84,10 +80,10 @@ export default class Warns extends BotModule {
             return
         }
 
-        Logger.info(`Target member is: ${targetMember.displayName}`)
+        Logger.info(`warns: ${member.displayName} is trying to ${interaction.commandName} to user ${targetMember.displayName}`)
 
         if (!this.bot.isModerator(member) || !member.permissions.has("Administrator")) {
-            Logger.error(`warns: Command user does not have permissions`)
+            Logger.error(`warns: ${member.displayName} doesn't have enough permissions`)
             await interaction.reply({
                 content: "You don't have permissions to use this command",
                 flags: MessageFlags.Ephemeral
@@ -118,7 +114,7 @@ export default class Warns extends BotModule {
         const { data: warns, error } = await tryCatch(sql`
             DELETE FROM warns WHERE id = (
                 SELECT id FROM warns WHERE user_id = ${member.id} ORDER BY given_at ASC LIMIT 1
-            )
+            ) RETURNING id
         `)
 
         if (error) {
@@ -129,7 +125,7 @@ export default class Warns extends BotModule {
             })
         }
 
-        if (!warns) {
+        if (!warns[0]) {
             Logger.info(`warns: User [${member.displayName}] had no warns`)
             await interaction.reply({
                 content: "User has no warn",
@@ -141,6 +137,7 @@ export default class Warns extends BotModule {
         for (const role of this.roles) {
             if (member.roles.cache.has(role.id)) {
                 await member.roles.remove(role)
+                Logger.success(`warns: ${member.displayName} got one warn removed`)
                 await interaction.reply({
                     content: "Warn removed",
                     flags: MessageFlags.Ephemeral
@@ -192,11 +189,13 @@ export default class Warns extends BotModule {
                     content: "Max number of warn reached, user banned",
                     flags: MessageFlags.Ephemeral
                 })
+                Logger.success(`warns: ${member.displayName} got banned for reaching the max number of warns`)
             } else {
                 await interaction.reply({
                     content: "Max number of warn reached! Unable to assign another",
                     flags: MessageFlags.Ephemeral
                 })
+                Logger.warn(`warns: ${member.displayName} cannot recive another warn since it reached the maximum number`)
             }
             return
         }
@@ -208,6 +207,7 @@ export default class Warns extends BotModule {
             }
         }
 
+        Logger.success(`warns: ${member.displayName} got warned`)
         await interaction.reply({
             content: "User warned",
             flags: MessageFlags.Ephemeral
@@ -227,6 +227,8 @@ export default class Warns extends BotModule {
         if (error) {
             return Logger.error(`warns: Failed to delete warns from database for user ${id}, ${error}`)
         }
+
+        Logger.info(`The user [${id}] got all his warn removed`)
     }
 
     /**
@@ -272,7 +274,7 @@ export default class Warns extends BotModule {
 
         const { data: warnToRemove, error } = await tryCatch(sql`
             WITH deleted_warns AS (
-                DELETE FROM warns WHERE given_at <= NOW() - INTERVAL '${this.config.moderation.warn.expiresAfter} days' RETURNING user_id
+                DELETE FROM warns WHERE given_at <= NOW() - (${this.config.moderation.warn.expiresAfter} * INTERVAL '1 day') RETURNING user_id
             )
             SELECT user_id, COUNT(*) FROM deleted_warns GROUP BY user_id
         `)

@@ -21,7 +21,7 @@ export default class joinRoles extends BotModule {
 		}
 
 		if (!this.config.joinRoles.expires) {
-			return
+			return Logger.info("joinRoles: Expiry is disabled")
 		}
 
 		this.checkRoles()
@@ -38,13 +38,12 @@ export default class joinRoles extends BotModule {
 	public async memberJoined(member: GuildMember) {
 
 		const { error } = await tryCatch(sql`
-			INSERT INTO joinRoles (user_id, created_at)
+			INSERT INTO joinRoles (user_id, given_at)
 			VALUES (${member.id}, NOW())
 		`)
 
 		if (error) {
-			Logger.error(`joinRoles: Failed to insert user [${member.displayName}] into the database, ${error}`)
-			return
+			return Logger.error(`joinRoles: Failed to insert user [${member.displayName}] into the database, ${error}`)
 		}
 
 		await member.roles.add(this.roles)
@@ -77,17 +76,21 @@ export default class joinRoles extends BotModule {
 
 		const { data: deletedUsers, error } = await tryCatch(sql`
 			DELETE FROM joinRoles
-			WHERE created_at < NOW() - INTERVAL '${this.config.joinRoles.duration} days'
+			WHERE given_at < NOW() - INTERVAL '${this.config.joinRoles.duration} days'
 			RETURNING user_id
 		`)
 
 		if (error) {
-			Logger.error(`joinRoles: Failed to delete users from database, ${error}`)
-			return
+			return Logger.error(`joinRoles: Failed to delete users from database, ${error}`)
+		}
+		
+
+		if (!deletedUsers[0]) {
+			return Logger.info("joinRoles: No user has been deleted from the database")
 		}
 
-		Logger.info(`joinRoles: Deleted users from database\n${deletedUsers}`)
-
+		Logger.info(`joinRoles: Deleted users from database: \n${deletedUsers}`)
+		
 		for (const user of deletedUsers) {
 			const { data: member, error } = await tryCatch(this.bot.guild!.members.fetch(user.user_id))
 

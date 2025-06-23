@@ -11,11 +11,11 @@ class Main {
 	public async init() {
 
 		if (this.config.joinRoles.enabled) {
-			//this.bot.addModule(joinRoles)
+			this.bot.addModule(joinRoles)
 		}
 
 		if (this.config.moderation.warn.enabled) {
-			//this.bot.addModule(Warns)
+			this.bot.addModule(Warns)
 		}
 
 		if (this.config.switchingRoles.enabled) {

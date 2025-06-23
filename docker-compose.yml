@@ -25,7 +25,7 @@ services:
     build: .
     restart: unless-stopped
     volumes:
-      - ./config.json:/usr/src/app/config.json
+      - ./config:/usr/src/app/config
     depends_on:
       db:
         condition: service_healthy

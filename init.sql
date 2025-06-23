@@ -2,17 +2,17 @@ CREATE TABLE IF NOT EXISTS warns (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)
+);
 
 CREATE TABLE IF NOT EXISTS joinRoles (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)
+);
 
 CREATE TABLE IF NOT EXISTS switchingRole (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     role_to_remove TEXT NOT NULL,
-    given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )

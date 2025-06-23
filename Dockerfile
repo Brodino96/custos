@@ -22,8 +22,6 @@ RUN bun bundle
 FROM base AS release
 COPY --from=install /temp/dev/node_modules node_modules
 COPY --from=build /usr/src/app/dist/* /usr/src/app/
-COPY config.toml /usr/src/app/config.toml
-
 
 # run the app
 USER bun

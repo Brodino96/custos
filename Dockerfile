@@ -22,8 +22,12 @@ RUN bun bundle
 FROM base AS release
 COPY --from=install /temp/dev/node_modules node_modules
 COPY --from=build /usr/src/app/dist/* /usr/src/app/
+COPY --from=build /usr/src/app/config.example.json /usr/src/app/
+COPY --from=build /usr/src/app/entrypoint.sh /usr/src/app/
 
-# run the app
-USER bun
+# Make entrypoint script executable
+RUN chmod +x /usr/src/app/entrypoint.sh
+
+# run the app (entrypoint runs as root to create config, then app runs as bun)
 EXPOSE 8080/tcp
-ENTRYPOINT [ "bun", "run", "main.js" ]
+ENTRYPOINT ["/usr/src/app/entrypoint.sh", "bun", "run", "main.js"]

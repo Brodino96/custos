@@ -1,7 +1,7 @@
 import type { Snowflake } from "discord.js"
 import type { DeepReadonly } from "./types/readonly"
-import { join } from "path"
-import { existsSync, readFileSync, writeFileSync } from "fs"
+
+import { existsSync, readFileSync } from "fs"
 import Logger from "./logger"
 
 export type ConfigType = DeepReadonly<{
@@ -42,59 +42,13 @@ export type ConfigType = DeepReadonly<{
 	}
 }>
 
-const CONFIG_PATH = join(__dirname, "config/config.json")
-const DEFAULT_CONFIG: ConfigType = {
-
-	checkInterval: 2,
-
-	bot: {
-		token: "PUT-YOUR-DISCORD-BOT-TOKEN-HERE",
-		guildId: "111111111111111111",
-		clientId: "111111111111111111"
-	},
-
-	joinRoles: {
-		enabled: true,
-		roles: [ "111111111111111111" ],
-		expires: true,
-		duration: 30
-	},
-
-	switchingRoles: {
-		enabled: true,
-		roles: {
-			"111111111111111111": [
-				"111111111111111111",
-				"111111111111111111",
-				"111111111111111111"
-			]
-		},
-		duration: 30
-	},
-
-	moderation: {
-		moderatorRoles: [
-			"111111111111111111"
-		],
-		warn: {
-			enabled: true,
-			roles: [ "111111111111111111" ],
-			canExpire: true,
-			expiresAfter: 364,
-			ban: {
-				enabled: false,
-				banMessage: "You've been banned for reaching too many warns"
-			}
-		}
-	}
-} as const
+const CONFIG_PATH = "/usr/src/app/config/config.json"
 
 export default function loadConfig(): ConfigType {
 
 	if (!existsSync(CONFIG_PATH)) {
-		writeFileSync(CONFIG_PATH, JSON.stringify(DEFAULT_CONFIG, null, 4))
-		Logger.warn(`No config.json found. A template has been created at\n${CONFIG_PATH}\nFill it in and restart the application`)
-		return DEFAULT_CONFIG
+		Logger.error(`No config file found at ${CONFIG_PATH}. Please ensure config.json exists.`)
+		process.exit(1)
 	}
 
 	const file = readFileSync(CONFIG_PATH, "utf8")

@@ -1,47 +1,10 @@
 import type { Snowflake } from "discord.js"
 import type { DeepReadonly } from "./types/readonly"
-
 import { existsSync, readFileSync } from "fs"
 import Logger from "./logger"
+import configExample from "../../config.example.json"
 
-export type ConfigType = DeepReadonly<{
-
-	checkInterval: number
-
-	bot: {
-		token: string
-		guildId: Snowflake
-		clientId: Snowflake
-	}
-
-	moderation: {
-		moderatorRoles: Array<Snowflake>
-		warn: {
-			enabled: boolean
-			roles: Array<Snowflake>
-			canExpire: boolean
-			expiresAfter: number
-			ban: {
-				enabled: boolean
-				banMessage: string
-			}
-		}
-	}
-
-	switchingRoles: {
-		enabled: true
-		roles: Record<Snowflake, Array<Snowflake>>
-		duration: number
-	}
-
-	joinRoles: {
-		enabled: boolean
-		roles: Array<Snowflake>
-		expires: boolean
-		duration: number
-	}
-}>
-
+export type ConfigType = DeepReadonly<typeof configExample>
 const CONFIG_PATH = "/usr/src/app/config/config.json"
 
 export default function loadConfig(): ConfigType {

@@ -14,7 +14,6 @@
 	},
 	"dependencies": {
 		"discord.js": "^14.18.0",
-		"js-toml": "^1.0.1",
 		"rolldown": "^1.0.0-beta.4",
 		"typecatch": "^0.2.5"
 	}

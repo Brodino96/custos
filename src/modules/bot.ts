@@ -1,4 +1,4 @@
-import { Client, SnowflakeUtil } from "discord.js"
+import { Client } from "discord.js"
 import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import type { BotModuleMethod } from "../utils/types/botmodule"
 import type { ConfigType } from "../utils/config"
@@ -6,6 +6,7 @@ import { tryCatch } from "typecatch"
 import Logger from "../utils/logger"
 
 export class Bot {
+
 	public client: Client
 	public guild: Guild | undefined
 	public modules: BotModule[] = []
@@ -20,11 +21,15 @@ export class Bot {
 		})
 	}
 
+	/**
+	 * Initializes the bot
+	 */
 	public async init() {
+
 		const { error: loginError } = await tryCatch(this.client.login(this.config.bot.token))
 		if (loginError) {
 			Logger.error(`Failed to login: ${loginError}`)
-			process.exit(0)
+			return process.exit(0)
 		}
 
 		Logger.success(`Bot ready! Logged in as ${this.client.user?.tag}`)
@@ -32,16 +37,19 @@ export class Bot {
 		const { data: guild, error: guildError } = await tryCatch(this.client.guilds.fetch(this.config.bot.guildId))
 		if (guildError) {
 			Logger.error(`Failed to fetch the guild with id: ${this.config.bot.guildId}, ${guildError}`)
-			process.exit(0)
+			return process.exit(0)
 		}
+
 		this.guild = guild
-
 		this.callModule("init")
-
 		this.registerEvents()
 	}
 
+	/**
+	 * Registers the various discord events
+	 */
 	private registerEvents() {
+
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
 			Logger.info(`Member [${member.user.displayName}] joined the server`)
 			this.callModule("memberJoined", member)
@@ -58,6 +66,10 @@ export class Bot {
 		})
 	}
 
+	/**
+	 * Checks if the user passed is a moderator
+	 * @param member Discord user
+	 */
 	public async isModerator(member: GuildMember | PartialGuildMember) {
 		for (const role of this.config.moderation.moderatorRoles) {
 			if (member.roles.cache.has(role)) {
@@ -89,9 +101,11 @@ export class Bot {
 	public async addModule(module: new (bot: Bot, config: ConfigType) => BotModule) {
 		this.modules.push(new module(this, this.config))
 	}
+
 }
 
 export abstract class BotModule {
+	
 	protected bot: Bot
 	protected config: ConfigType
 

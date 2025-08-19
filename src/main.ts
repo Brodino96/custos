@@ -2,6 +2,7 @@ import { Bot } from "./modules/bot"
 import joinRoles from "./modules/joinRoles"
 import switchingRoles from "./modules/switchingRoles"
 import Warns from "./modules/warns"
+import PersistentRoles from "./modules/persistentRoles"
 import loadConfig from "./utils/config"
 
 class Main {
@@ -20,6 +21,10 @@ class Main {
 
 		if (this.config.switchingRoles.enabled) {
 			this.bot.addModule(switchingRoles)
+		}
+
+		if (this.config.persistentRoles.enabled) {
+			this.bot.addModule(PersistentRoles)
 		}
 
 		await this.bot.init()

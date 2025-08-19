@@ -24,6 +24,9 @@
         },
         "duration": 30
     },
+    "persistentRoles": {
+        "enabled": true
+    },
     "moderation": {
         "moderatorRoles": [
             "111111111111111111"

@@ -5,30 +5,23 @@ import Warns from "./modules/warns"
 import PersistentRoles from "./modules/persistentRoles"
 import loadConfig from "./utils/config"
 
-class Main {
-	public config = loadConfig()
-	private bot: Bot = new Bot(this.config)
+const config = loadConfig()
+const bot = new Bot(config)
 
-	public async init() {
-
-		if (this.config.joinRoles.enabled) {
-			this.bot.addModule(joinRoles)
-		}
-
-		if (this.config.moderation.warn.enabled) {
-			this.bot.addModule(Warns)
-		}
-
-		if (this.config.switchingRoles.enabled) {
-			this.bot.addModule(switchingRoles)
-		}
-
-		if (this.config.persistentRoles.enabled) {
-			this.bot.addModule(PersistentRoles)
-		}
-
-		await this.bot.init()
-	}
+if (config.joinRoles.enabled) {
+	bot.addModule(joinRoles)
 }
 
-new Main().init()
+if (config.moderation.warn.enabled) {
+	bot.addModule(Warns)
+}
+
+if (config.switchingRoles.enabled) {
+	bot.addModule(switchingRoles)
+}
+
+if (config.persistentRoles.enabled) {
+	bot.addModule(PersistentRoles)
+}
+
+await bot.init()

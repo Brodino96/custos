@@ -1,5 +1,5 @@
 {
-	"name": "discord_moderator_bot",
+	"name": "custos",
 	"module": "src/main.ts",
 	"scripts": {
 		"dev": "bunx rolldown -c",

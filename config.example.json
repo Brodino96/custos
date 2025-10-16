@@ -42,6 +42,13 @@
                 "enabled": false,
                 "banMessage": "You've been banned for reaching too many warns"
             }
+        },
+        "exile": {
+            "enabled": true,
+            "roles": [
+                "111111111111111111"
+            ],
+            "stripRoles": true
         }
     }
 }

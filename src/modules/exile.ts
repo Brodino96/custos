@@ -1,9 +1,10 @@
-import { type GuildMember, type PartialGuildMember, type ContextMenuCommandInteraction, type Role, ApplicationCommandType, MessageFlags, ApplicationCommandOptionType, ChatInputCommandInteraction, User } from "discord.js";
+import { MessageFlags, ApplicationCommandOptionType, ChatInputCommandInteraction, User } from "discord.js"
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role } from "discord.js"
 import { BotModule } from "./bot"
-import Logger from "../utils/logger";
-import Locale from "../utils/locale";
-import { sql } from "bun";
-import { tryCatch } from "typecatch";
+import Logger from "../utils/logger"
+import Locale from "../utils/locale"
+import { sql } from "bun"
+import { tryCatch } from "typecatch"
 
 export default class Exile extends BotModule {
     
@@ -62,6 +63,19 @@ export default class Exile extends BotModule {
                             required: true
                         }
                     ]
+                },
+                {
+                    name: "info",
+                    description: "Gives info about the exiles",
+                    type: ApplicationCommandOptionType.Subcommand,
+                    options: [
+                        {
+                            name: "user",
+                            description: "The user to get the info",
+                            type: ApplicationCommandOptionType.User,
+                            required: true
+                        }
+                    ]
                 }
             ]
         })
@@ -90,9 +104,30 @@ export default class Exile extends BotModule {
             case "remove":
                 await this.readmitUser(target, interaction)
                 break
+            case "info":
+                await this.getInfo(target, interaction)
+                break
             default:
                 Logger.warn(`exile: interaction wasn't: ${this.commandNames}`)
         }
+    }
+
+    private async getInfo(user: User, interaction: ChatInputCommandInteraction) {
+        const { data, error } = await tryCatch(sql`
+            SELECT given_at FROM exiles WHERE user_id = ${user.id} AND active = 1
+        `)
+
+        if (error) {
+            await interaction.reply({
+                content: "Failed to fetch info from the database",
+                flags: MessageFlags.Ephemeral
+            })
+        }
+
+        await interaction.reply({
+            content: data,
+            flags: MessageFlags.Ephemeral
+        })
     }
     
     private async exileUser(user: User, reason: String | null, interaction: ChatInputCommandInteraction) {

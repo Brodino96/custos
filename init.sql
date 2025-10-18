@@ -27,5 +27,6 @@ CREATE TABLE IF NOT EXISTS exiles (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     reason TEXT,
+    active INT,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 )

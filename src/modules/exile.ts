@@ -139,10 +139,6 @@ export default class Exile extends BotModule {
             })
             return
         }
-
-        if (this.config.moderation.exile.stripRoles) {
-            member.roles.remove(member.roles.cache)
-        }
         
         const { error } = await tryCatch(sql`
             INSERT INTO exiles (user_id, reason, active, given_at)
@@ -157,7 +153,11 @@ export default class Exile extends BotModule {
             return
         }
 
-        member.roles.add(this.roles)
+        if (this.config.moderation.exile.stripRoles) {
+            await member.roles.remove(member.roles.cache)
+        }
+
+        await member.roles.add(this.roles)
         await interaction.reply({
             content: "User has been exiled",
             flags: MessageFlags.Ephemeral

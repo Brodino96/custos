@@ -1,14 +1,23 @@
 export default class Logger {
-    static error(txt: string) {
-        console.log("\x1b[31m", `[ERROR] ${txt}`)
+    private module: string
+    
+    constructor(module: string) {
+        this.module = module
     }
-    static success(txt: string) {
-        console.log("\x1b[32m", `[SUCCESS] ${txt}`)
+    
+    public error(txt: string) {
+        console.log("\x1b[31m", `[ERROR] ${this.module}: ${txt}`)
     }
-    static info(txt: string) {
-        console.log(`[INFO] ${txt}`)
+
+    public success(txt: string) {
+        console.log("\x1b[32m", `[SUCCESS] ${this.module}:  ${txt}`)
     }
-    static warn(txt: string) {
-        console.log("\x1b[33m", `[WARNING] ${txt}`)
+
+    public info(txt: string) {
+        console.log(`[INFO] ${this.module}:  ${txt}`)
+    }
+
+    public warn(txt: string) {
+        console.log("\x1b[33m", `[WARNING] ${this.module}:  ${txt}`)
     }
 }

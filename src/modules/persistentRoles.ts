@@ -7,14 +7,14 @@ import Logger from "../utils/logger"
 export default class PersistentRoles extends BotModule {
 
     public async init() {
-        if (!this.config.persistentRoles.enabled) {
+        if (!this.baseConfig.persistentRoles.enabled) {
             return Logger.info("persistentRoles: Module disabled")
         }
         Logger.success("persistentRoles: Module initialized")
     }
 
     async memberJoined(member: GuildMember): Promise<void> {
-        if (!this.config.persistentRoles.enabled) return
+        if (!this.baseConfig.persistentRoles.enabled) return
 
         const { data, error } = await tryCatch(sql`
             SELECT roles FROM persistent_roles WHERE user_id = ${member.id}
@@ -63,13 +63,13 @@ export default class PersistentRoles extends BotModule {
     }
 
     async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {
-        if (!this.config.persistentRoles.enabled) return
+        if (!this.baseConfig.persistentRoles.enabled) return
 
         if (!member.roles || member.partial) {
             return Logger.warn(`persistentRoles: Cannot save roles for ${member.user?.displayName}, member data incomplete`)
         }
 
-        const warnRoleIds = this.config.moderation.warn.roles
+        const warnRoleIds = this.baseConfig.moderation.warn.roles
         const allRoles = member.roles.cache
         
         const rolesToSave = allRoles

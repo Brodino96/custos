@@ -13,7 +13,7 @@ export default class Exile extends BotModule {
     
     public async init(): Promise<void> {
 
-        for (const roleId of this.config.moderation.exile.roles) {
+        for (const roleId of this.baseConfig.moderation.exile.roles) {
             const role = await this.bot.guild?.roles.fetch(roleId)
             if (!role) {
                 Logger.warn(`ban: Failed to fetch role with id: ${roleId}`)
@@ -153,7 +153,7 @@ export default class Exile extends BotModule {
             return
         }
 
-        if (this.config.moderation.exile.stripRoles) {
+        if (this.baseConfig.moderation.exile.stripRoles) {
             await member.roles.remove(member.roles.cache)
         }
 

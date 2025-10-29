@@ -13,7 +13,7 @@ if (config.joinRoles.enabled) {
 	bot.addModule(joinRoles)
 }
 
-if (config.moderation.warn.enabled) {
+if (config.warn.enabled) {
 	bot.addModule(Warns)
 }
 
@@ -25,7 +25,7 @@ if (config.persistentRoles.enabled) {
 	bot.addModule(PersistentRoles)
 }
 
-if (config.moderation.exile.enabled) {
+if (config.exile.enabled) {
 	bot.addModule(Exile)
 }
 

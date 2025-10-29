@@ -11,7 +11,7 @@ export default class Warns extends BotModule {
 
     public async init() {
 
-        for (const roleId of this.config.moderation.warn.roles) {
+        for (const roleId of this.baseConfig.moderation.warn.roles) {
             const role = await this.bot.guild?.roles.fetch(roleId)
             if (!role) {
                 Logger.warn(`warns: Failed to fetch role with id: ${roleId}`)
@@ -23,14 +23,14 @@ export default class Warns extends BotModule {
 
         this.registerCommands()
 
-        if (!this.config.moderation.warn.canExpire) {
+        if (!this.baseConfig.moderation.warn.canExpire) {
             return Logger.info(`warns: Warn expiry disabled`)
         }
         
 		this.checkRoles()
 		setInterval(() => {
 			this.checkRoles()
-		}, Math.floor(this.config.checkInterval * 1000 * 60 * 60))
+		}, Math.floor(this.baseConfig.checkInterval * 1000 * 60 * 60))
     }
 
     /**
@@ -182,9 +182,9 @@ export default class Warns extends BotModule {
 
         if (count == 0) {
 
-            if (this.config.moderation.warn.ban.enabled) {
+            if (this.baseConfig.moderation.warn.ban.enabled) {
                 await this.removeDatabaseWarns(member.id)
-                await member.ban({ reason: this.config.moderation.warn.ban.banMessage})
+                await member.ban({ reason: this.baseConfig.moderation.warn.ban.banMessage})
                 await interaction.reply({
                     content: "Max number of warn reached, user banned",
                     flags: MessageFlags.Ephemeral
@@ -274,7 +274,7 @@ export default class Warns extends BotModule {
 
         const { data: warnToRemove, error } = await tryCatch(sql`
             WITH deleted_warns AS (
-                DELETE FROM warns WHERE given_at <= NOW() - (${this.config.moderation.warn.expiresAfter} * INTERVAL '1 day') RETURNING user_id
+                DELETE FROM warns WHERE given_at <= NOW() - (${this.baseConfig.moderation.warn.expiresAfter} * INTERVAL '1 day') RETURNING user_id
             )
             SELECT user_id, COUNT(*) FROM deleted_warns GROUP BY user_id
         `)

@@ -1,5 +1,5 @@
 import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role } from "discord.js"
 import type { BotModuleMethod } from "../utils/types/botmodule"
 import type { ConfigType } from "../utils/config"
 import { tryCatch } from "typecatch"
@@ -7,15 +7,15 @@ import Logger from "../utils/logger"
 
 export class Bot {
 
-	public client: Client
-	public guild: Guild | undefined
-	public modules: BotModule[] = []
 	public config: ConfigType
-
-	public moderators: Array<Role> = []
+	private logger: Logger
+	public client: Client
+	public guild!: Guild
+	public modules: BotModule[] = []
 
 	constructor(config: ConfigType) {
 		this.config = config
+		this.logger = new Logger("Bot")
 		this.client = new Client({
 			intents: ["Guilds", "GuildMessages", "GuildMembers", "MessageContent"],
 		})
@@ -28,19 +28,20 @@ export class Bot {
 
 		const { error: loginError } = await tryCatch(this.client.login(this.config.bot.token))
 		if (loginError) {
-			Logger.error(`Failed to login: ${loginError}`)
+			this.logger.error(`Failed to login: ${loginError}`)
 			return process.exit(0)
 		}
 
-		Logger.success(`Bot ready! Logged in as ${this.client.user?.tag}`)
+		this.logger.success(`Bot ready! Logged in as ${this.client.user?.tag}`)
 		
 		const { data: guild, error: guildError } = await tryCatch(this.client.guilds.fetch(this.config.bot.guildId))
 		if (guildError) {
-			Logger.error(`Failed to fetch the guild with id: ${this.config.bot.guildId}, ${guildError}`)
+			this.logger.error(`Failed to fetch the guild with id: ${this.config.bot.guildId}, ${guildError}`)
 			return process.exit(0)
 		}
 
 		this.guild = guild
+
 		this.callModule("init")
 		this.registerEvents()
 	}
@@ -51,12 +52,12 @@ export class Bot {
 	private registerEvents() {
 
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
-			Logger.info(`Member [${member.user.displayName}] joined the server`)
+			this.logger.info(`Member [${member.user.displayName}] joined the server`)
 			this.callModule("memberJoined", member)
 		})
 
 		this.client.on("guildMemberRemove", async (member: GuildMember | PartialGuildMember) => {
-			Logger.info(`Member [${member.user.displayName}] left the server`)
+			this.logger.info(`Member [${member.user.displayName}] left the server`)
 			this.callModule("memberLeft", member)
 		})
 
@@ -71,7 +72,7 @@ export class Bot {
 	 * @param member Discord user
 	 */
 	public async isModerator(member: GuildMember | PartialGuildMember) {
-		for (const role of this.config.moderation.moderatorRoles) {
+		for (const role of this.config.bot.moderatorRoles) {
 			if (member.roles.cache.has(role)) {
 				return true
 			}
@@ -107,11 +108,11 @@ export class Bot {
 export abstract class BotModule {
 	
 	protected bot: Bot
-	protected config: ConfigType
+	protected baseConfig: ConfigType
 
-	constructor(bot: Bot, config: ConfigType) {
+	constructor(bot: Bot, config: ConfigType, moduleName: string) {
 		this.bot = bot
-		this.config = config
+		this.baseConfig = config
 	}
 
 	abstract init(): Promise<void>

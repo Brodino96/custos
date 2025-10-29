@@ -6,28 +6,30 @@ import Logger from "../utils/logger"
 
 export default class joinRoles extends BotModule {
 
-	private readonly roles: Array<Role> = []
+	private readonly logger = new Logger("JoinRoles")
+	private readonly roles: Role[] = []
+	private readonly config = this.baseConfig.joinRoles
 
 	public async init() {
 
-		for (const roleId of this.config.joinRoles.roles) {
+		for (const roleId of this.config.roles) {
 			const role = await this.bot.guild?.roles.fetch(roleId)
 			if (!role) {
-				Logger.warn(`joinRoles: Failed to fetch role with id: ${roleId}`)
+				this.logger.warn(`Failed to fetch role with id: ${roleId}`)
 				continue
 			}
 			this.roles.push(role)
-			Logger.success(`joinRoles: Added role [${role.name}] to list`)
+			this.logger.success(`Added role [${role.name}] to list`)
 		}
 
-		if (!this.config.joinRoles.expires) {
-			return Logger.info("joinRoles: Expiry is disabled")
+		if (!this.baseConfig.joinRoles.expires) {
+			return this.logger.info("Expiry is disabled")
 		}
 
 		this.checkRoles()
 		setInterval(() => {
 			this.checkRoles()
-		}, Math.floor(this.config.checkInterval * 1000 * 60 * 60))
+		}, Math.floor(this.baseConfig.checkInterval * 1000 * 60 * 60))
 	}
 
 	/**
@@ -76,7 +78,7 @@ export default class joinRoles extends BotModule {
 
 		const { data: deletedUsers, error } = await tryCatch(sql`
 			DELETE FROM join_roles
-			WHERE given_at < NOW() - (${this.config.joinRoles.duration} * INTERVAL '1 days')
+			WHERE given_at < NOW() - (${this.baseConfig.joinRoles.duration} * INTERVAL '1 days')
 			RETURNING user_id
 		`)
 

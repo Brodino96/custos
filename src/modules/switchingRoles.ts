@@ -10,7 +10,7 @@ export default class switchingRoles extends BotModule {
 
     async init(): Promise<void> {
 
-        for (const [ key, value ] of Object.entries(this.config.switchingRoles.roles)) {
+        for (const [ key, value ] of Object.entries(this.baseConfig.switchingRoles.roles)) {
 
             const afterRoles = []
             for (const afterRoleId of value) {
@@ -34,7 +34,7 @@ export default class switchingRoles extends BotModule {
         this.checkRoles()
         setInterval(() => {
             this.checkRoles()
-        }, Math.floor(this.config.checkInterval * 1000 * 60 * 60))
+        }, Math.floor(this.baseConfig.checkInterval * 1000 * 60 * 60))
     }
 
     private async guildMemberUpdate(oldMember: GuildMember | PartialGuildMember, newMember: GuildMember): Promise<void> {
@@ -75,7 +75,7 @@ export default class switchingRoles extends BotModule {
         
         const { data: deletedUsers, error } = await tryCatch(sql`
             DELETE FROM switching_roles
-            WHERE given_at < NOW() - (${this.config.switchingRoles.duration} * INTERVAL '1 days')
+            WHERE given_at < NOW() - (${this.baseConfig.switchingRoles.duration} * INTERVAL '1 days')
             RETURNING user_id, role_id
         `)
 

@@ -1,10 +1,16 @@
 {
+
     "checkInterval": 2,
+    
     "bot": {
         "token": "PUT-YOUR-DISCORD-BOT-TOKEN-HERE",
         "guildId": "111111111111111111",
-        "clientId": "111111111111111111"
+        "clientId": "111111111111111111",
+        "moderatorRoles": [
+            "111111111111111111"
+        ]
     },
+    
     "joinRoles": {
         "enabled": true,
         "roles": [
@@ -13,6 +19,7 @@
         "expires": true,
         "duration": 30
     },
+    
     "switchingRoles": {
         "enabled": true,
         "roles": {
@@ -24,31 +31,29 @@
         },
         "duration": 30
     },
+    
     "persistentRoles": {
         "enabled": true
     },
-    "moderation": {
-        "moderatorRoles": [
+    
+    "warn": {
+        "enabled": true,
+        "roles": [
             "111111111111111111"
         ],
-        "warn": {
-            "enabled": true,
-            "roles": [
-                "111111111111111111"
-            ],
-            "canExpire": true,
-            "expiresAfter": 364,
-            "ban": {
-                "enabled": false,
-                "banMessage": "You've been banned for reaching too many warns"
-            }
-        },
-        "exile": {
-            "enabled": true,
-            "roles": [
-                "111111111111111111"
-            ],
-            "stripRoles": true
+        "canExpire": true,
+        "expiresAfter": 364,
+        "ban": {
+            "enabled": false,
+            "banMessage": "You've been banned for reaching too many warns"
         }
+    },
+
+    "exile": {
+        "enabled": true,
+        "roles": [
+            "111111111111111111"
+        ],
+        "stripRoles": true
     }
 }

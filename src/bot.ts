@@ -1,9 +1,9 @@
 import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role } from "discord.js"
-import type { BotModuleMethod } from "../utils/types/botmodule"
-import type { ConfigType } from "../utils/config"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, PartialGuildMember, Role } from "discord.js"
+import type { BotModule, BotModuleMethod } from "./modules/botmodule"
+import type { ConfigType } from "./utils/config"
 import { tryCatch } from "typecatch"
-import Logger from "../utils/logger"
+import Logger from "./utils/logger"
 
 export class Bot {
 
@@ -12,18 +12,17 @@ export class Bot {
 	public client: Client
 	public guild!: Guild
 	public modules: BotModule[] = []
+	public checkInterval: number
 
 	constructor(config: ConfigType) {
 		this.config = config
 		this.logger = new Logger("Bot")
+		this.checkInterval = Math.floor(this.config.checkInterval * 1000 * 60 * 60)
 		this.client = new Client({
 			intents: ["Guilds", "GuildMessages", "GuildMembers", "MessageContent"],
 		})
 	}
 
-	/**
-	 * Initializes the bot
-	 */
 	public async init() {
 
 		const { error: loginError } = await tryCatch(this.client.login(this.config.bot.token))
@@ -46,9 +45,6 @@ export class Bot {
 		this.registerEvents()
 	}
 
-	/**
-	 * Registers the various discord events
-	 */
 	private registerEvents() {
 
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
@@ -68,8 +64,9 @@ export class Bot {
 	}
 
 	/**
-	 * Checks if the user passed is a moderator
-	 * @param member Discord user
+	 * Checks if the user is a moderator
+	 * @param member 
+	 * @returns 
 	 */
 	public async isModerator(member: GuildMember | PartialGuildMember) {
 		for (const role of this.config.bot.moderatorRoles) {
@@ -77,7 +74,25 @@ export class Bot {
 				return true
 			}
 		}
+
+		if (member.permissions.has("Administrator")) {
+			return true
+		}
+		
 		return false
+	}
+
+	public async getRoles(rolesList: Readonly<string[]>, source: string): Promise<Role[]> {
+		const roles: Role[] = []
+		for (const roleId of rolesList) {
+			const role = await this.guild.roles.fetch(roleId)
+			if (!role) {
+				this.logger.error(`Failed to fetch role with id: [${roleId}] from module: [${source}]`)
+				continue
+			}
+			roles.push(role)
+		}
+		return roles
 	}
 
 	/**
@@ -103,21 +118,4 @@ export class Bot {
 		this.modules.push(new module(this, this.config))
 	}
 
-}
-
-export abstract class BotModule {
-	
-	protected bot: Bot
-	protected baseConfig: ConfigType
-
-	constructor(bot: Bot, config: ConfigType, moduleName: string) {
-		this.bot = bot
-		this.baseConfig = config
-	}
-
-	abstract init(): Promise<void>
-
-	abstract memberJoined(member: GuildMember): Promise<void>
-	abstract memberLeft(member: GuildMember | PartialGuildMember): Promise<void>
-	abstract contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void>
 }

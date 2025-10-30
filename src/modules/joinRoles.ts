@@ -1,112 +1,85 @@
 import { sql } from "bun"
 import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember, Role } from "discord.js"
-import { BotModule } from "./bot"
+import { BotModule } from "../bot"
 import { tryCatch } from "typecatch"
 import Logger from "../utils/logger"
 
 export default class joinRoles extends BotModule {
 
-	private readonly logger = new Logger("JoinRoles")
-	private readonly roles: Role[] = []
 	private readonly config = this.baseConfig.joinRoles
+	private readonly moduleName = "JoinRoles"
+	private readonly logger = new Logger(this.moduleName)
+	private roles: Role[] = []
 
 	public async init() {
 
-		for (const roleId of this.config.roles) {
-			const role = await this.bot.guild?.roles.fetch(roleId)
-			if (!role) {
-				this.logger.warn(`Failed to fetch role with id: ${roleId}`)
-				continue
-			}
-			this.roles.push(role)
-			this.logger.success(`Added role [${role.name}] to list`)
-		}
-
-		if (!this.baseConfig.joinRoles.expires) {
+		this.roles = await this.bot.getRoles(this.config.roles, this.moduleName)
+	
+		if (!this.config.expires) {
 			return this.logger.info("Expiry is disabled")
 		}
 
 		this.checkRoles()
 		setInterval(() => {
 			this.checkRoles()
-		}, Math.floor(this.baseConfig.checkInterval * 1000 * 60 * 60))
+		}, Math.floor(this.bot.checkInterval))
 	}
 
-	/**
-	 * Adds joinRoles when joining the server
-	 * @param member The user that joined the discord
-	 * @returns void
-	 */
 	public async memberJoined(member: GuildMember) {
-
 		const { error } = await tryCatch(sql`
 			INSERT INTO join_roles (user_id, given_at)
 			VALUES (${member.id}, NOW())
 		`)
 
 		if (error) {
-			return Logger.error(`joinRoles: Failed to insert user [${member.displayName}] into the database, ${error}`)
+			return this.logger.error(`Failed to insert user: [${member.user.username}] into database, ${error}`)
 		}
 
 		await member.roles.add(this.roles)
-		Logger.success(`joinRoles: Added to user ${member.displayName}`)
+		this.logger.success(`Roles succesfully added to user: ${member.user.globalName}`)
 	}
 
-	/**
-	 * Removes joinRoles when leaving the server
-	 * @param member the user that left the discord
-	 * @returns void
-	 */
 	public async memberLeft(member: GuildMember | PartialGuildMember) {
-		const { error } = await tryCatch(sql`DELETE FROM join_roles WHERE user_id = ${member.id}`)
+		const { error } = await tryCatch(sql`
+			DELETE FROM join_roles WHERE user_id = ${member.id}`
+		)
 
 		if (error) {
-			Logger.error(`joinRoles: Failed to remove user [${member.displayName}] from database: ${error}`)
-			return
+			return this.logger.error(`Failed to removed user: [${member.user.globalName}] from database, ${error}`)
 		}
 
-		Logger.success(`joinRoles: Removed user [${member.displayName}] from database`)
+		this.logger.success(`Removed user: [${member.user.globalName}] from database`)
 	}
 
-	/**
-	 * Periodically checks if the joinRoles are expired
-	 * @returns void
-	 */
 	private async checkRoles() {
-
-		Logger.info("joinRoles: Checking...")
+		this.logger.info("Checking database...")
 
 		const { data: deletedUsers, error } = await tryCatch(sql`
 			DELETE FROM join_roles
-			WHERE given_at < NOW() - (${this.baseConfig.joinRoles.duration} * INTERVAL '1 days')
+			WHERE given_at < NOW() - (${this.config.duration} * INTERVAL '1 days')
 			RETURNING user_id
 		`)
 
 		if (error) {
-			return Logger.error(`joinRoles: Failed to delete users from database, ${error}`)
+			return this.logger.error(`Failed to fetch users from database, ${error}`)
 		}
-		
 
 		if (!deletedUsers[0]) {
-			return Logger.info("joinRoles: No user has been deleted from the database")
+			return this.logger.info(`No user has been deleted from the database`)
 		}
 
-		Logger.info(`joinRoles: Deleted users from database: \n${deletedUsers}`)
+		this.logger.info(`Deleted users from database: \n${deletedUsers}`)
 		
 		for (const user of deletedUsers) {
 			const { data: member, error } = await tryCatch(this.bot.guild!.members.fetch(user.user_id))
 
-			if (error) {
-				continue
-			}
-
-			if (!member) {
-				Logger.error(`joinRoles: Failed to fetch member [${user.user_id}], he probably left the server while the bot wasn't active`)
+			if (error || !member) {
+				this.logger.error(`Failed to fetch member [${user.user_id}], he probably left the server while the bot wasn't active`)
 				continue
 			}
 
 			await member.roles.remove(this.roles)
-			Logger.success(`joinRoles: Removed roles for user [${member.displayName}]`)
+			this.logger.success(`Removed roles for user [${member.user.globalName}]`)
 		}
 	}
 

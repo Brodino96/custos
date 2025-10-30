@@ -1,6 +1,6 @@
 import { sql } from "bun"
 import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember, Role } from "discord.js"
-import { BotModule } from "../bot"
+import { BotModule } from "./botmodule"
 import { tryCatch } from "typecatch"
 import Logger from "../utils/logger"
 

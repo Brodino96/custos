@@ -89,7 +89,7 @@ export default class Exile extends BotModule {
         }
 
         const member = await this.bot.guild?.members.fetch(interaction.user.id)
-        if (!member  || await this.bot.isModerator(member)) {
+        if (!member  || !await this.bot.isModerator(member)) {
             await interaction.reply({ content: Locale.noPermission, flags: MessageFlags.Ephemeral })
             return
         }

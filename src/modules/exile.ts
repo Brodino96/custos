@@ -1,4 +1,4 @@
-import { MessageFlags, ApplicationCommandOptionType, ChatInputCommandInteraction, User } from "discord.js"
+import { MessageFlags, ApplicationCommandOptionType, ChatInputCommandInteraction, User, ApplicationCommandType } from "discord.js"
 import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role } from "discord.js"
 import { BotModule } from "./bot"
 import Logger from "../utils/logger"
@@ -27,92 +27,78 @@ export default class Exile extends BotModule {
     }
     
     private async registerCommands() {
+        Promise.all([
+            this.bot.guild?.commands.create({
+                name: "Exile add",
+                type: ApplicationCommandType.User
+            }),
+            this.bot.guild?.commands.create({
+                name: "Exile remove",
+                type: ApplicationCommandType.User
+            }),
+            this.bot.guild?.commands.create({
+                name: "Exile info",
+                type: ApplicationCommandType.User
+            })
+        ])
 
-        await this.bot.guild?.commands.create({
-            name: "exile",
-            description: "Manage user exiles",
-            options: [
-                {
-                    name: "add",
-                    description: "Exiles the user",
-                    type: ApplicationCommandOptionType.Subcommand,
-                    options: [
-                        {
-                            name: "user",
-                            description: "The user to exile",
-                            type: ApplicationCommandOptionType.User,
-                            required: true
-                        },
-                        {
-                            name: "reason",
-                            description: "Reason for the exile",
-                            type: ApplicationCommandOptionType.String,
-                            required: true
-                        }
-                    ]
-                },
-                {
-                    name: "remove",
-                    description: "Readmits the user",
-                    type: ApplicationCommandOptionType.Subcommand,
-                    options: [
-                        {
-                            name: "user",
-                            description: "The user to remove the exile from",
-                            type: ApplicationCommandOptionType.User,
-                            required: true
-                        }
-                    ]
-                },
-                {
-                    name: "info",
-                    description: "Gives info about the exiles",
-                    type: ApplicationCommandOptionType.Subcommand,
-                    options: [
-                        {
-                            name: "user",
-                            description: "The user to get the info",
-                            type: ApplicationCommandOptionType.User,
-                            required: true
-                        }
-                    ]
-                }
-            ]
-        })
-        
         Logger.info(`exile: Registered commands`)
     }
 
-    private async onSlashCommand(interaction: ChatInputCommandInteraction) {
-        if (interaction.commandName !== "exile") {
-            return
+    public async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {
+        if (!interaction.isContextMenuCommand()) { return }
+
+        switch (interaction.commandName) {
+            case "Exile add": break
+            case "Exile remove": break
+            case "Exile info": break
+            default: return
         }
 
         const member = await this.bot.guild?.members.fetch(interaction.user.id)
-        if (!member  || !await this.bot.isModerator(member)) {
-            await interaction.reply({ content: Locale.noPermission, flags: MessageFlags.Ephemeral })
+        if (!member) {
+            Logger.error("exile: Command user is null")
+            await interaction.reply({
+                content: "Somehow you are not a user????",
+                flags: MessageFlags.Ephemeral
+            })
             return
         }
 
-        const subCommand = interaction.options.getSubcommand()
-        const target = interaction.options.getUser("user", true)
+        if (!this.bot.isModerator(member)) {
+            await interaction.reply({
+                content: Locale.noPermission,
+                flags: MessageFlags.Ephemeral
+            })
+            return
+        }
 
-        switch (subCommand) {
-            case "add":
-                await this.exileUser(target, interaction.options.getString("reason"), interaction)
+        const targetMember = await this.bot.guild?.members.fetch(interaction.targetId)
+        if (!targetMember) {
+            Logger.error("exile: Target member is null")
+            await interaction.reply({
+                content: "Target member does not exists",
+                flags: MessageFlags.Ephemeral
+            })
+            return
+        }
+
+        Logger.info(`exile: ${member.user.username} is trying to ${interaction.commandName} the user ${targetMember.user.username}`)
+
+        switch (interaction.commandName) {
+            case "Exile add":
+                await this.exileUser(targetMember.user, interaction)
                 break
-            case "remove":
-                await this.readmitUser(target, interaction)
+            case "Exile remove":
+                await this.readmitUser(targetMember.user, interaction)
                 break
-            case "info":
-                await this.getInfo(target, interaction)
+            case "Exile info":
+                await this.getInfo(targetMember.user, interaction)
                 break
-            default:
-                Logger.warn(`exile: interaction wasn't: ${this.commandNames}`)
         }
     }
 
-    private async getInfo(user: User, interaction: ChatInputCommandInteraction) {
+    private async getInfo(user: User, interaction: ContextMenuCommandInteraction) {
         const { data, error } = await tryCatch(sql`
             SELECT given_at FROM exiles WHERE user_id = ${user.id} AND active = 1
         `)
@@ -130,7 +116,7 @@ export default class Exile extends BotModule {
         })
     }
     
-    private async exileUser(user: User, reason: String | null, interaction: ChatInputCommandInteraction) {
+    private async exileUser(user: User, interaction: ContextMenuCommandInteraction) {
         const member = await this.bot.guild?.members.fetch(user.id)
         if (!member) {
             await interaction.reply({
@@ -142,7 +128,7 @@ export default class Exile extends BotModule {
         
         const { error } = await tryCatch(sql`
             INSERT INTO exiles (user_id, reason, active, given_at)
-            VALUES (${member.id}, ${reason}, 1, NOW())
+            VALUES (${member.id}, ${""}, 1, NOW())
         `)
 
         if (error) {
@@ -164,7 +150,7 @@ export default class Exile extends BotModule {
         })
     }
 
-    private async readmitUser(user: User, interaction: ChatInputCommandInteraction) {
+    private async readmitUser(user: User, interaction: ContextMenuCommandInteraction) {
         const member = await this.bot.guild?.members.fetch(user.id)
 
         if (!member) {
@@ -196,11 +182,7 @@ export default class Exile extends BotModule {
         })
     }
     
-    public async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {
-        if (interaction.isChatInputCommand()) {
-            this.onSlashCommand(interaction)
-        }
-    }
+
 
     public async memberJoined(member: GuildMember): Promise<void> {}
 

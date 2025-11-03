@@ -1,6 +1,6 @@
 enum Locale {
     noPermission = "You don't have permission to do this",
-    noSource = "Somehow you are not a user",
+    noSource = "Source user is null",
     noTarget = "Target user is null"
 }
 

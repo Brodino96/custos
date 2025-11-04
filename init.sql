@@ -1,3 +1,14 @@
+CREATE TABLE IF NOT EXISTS exiles (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    reason TEXT,
+    active BOOLEAN,
+    given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ,
+    roles TEXT
+)
+
+/*
 CREATE TABLE IF NOT EXISTS warns (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -22,13 +33,4 @@ CREATE TABLE IF NOT EXISTS persistent_roles (
     user_id TEXT NOT NULL UNIQUE,
     roles TEXT NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS exiles (
-    id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,
-    reason TEXT,
-    active BOOLEAN,
-    given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    expires_at TIMESTAMPTZ,
-    roles TEXT
-)
+*/

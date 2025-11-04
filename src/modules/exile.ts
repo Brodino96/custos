@@ -13,6 +13,9 @@ export default class Exile extends BotModule {
     private readonly logger = new Logger(this.moduleName)
     private roles: Role[] = []
     
+    /**
+     * Initializes the module
+     */
     public async init(): Promise<void> {
         this.roles = await this.bot.getRoles(this.config.roles, this.moduleName)
         this.logger.info(`Initializing ${this.moduleName}`)
@@ -24,7 +27,11 @@ export default class Exile extends BotModule {
         }, this.bot.checkInterval)
     }
 
-    private async checkRoles() {
+    /**
+     * Loops every tot time to check expired exiles
+     * @returns
+     */
+    private async loop(): Promise<void> {
         const { data, error } = await tryCatch(sql<ExileEntry[]>`
             UPDATE exiles SET active = FALSE
             WHERE active = TRUE AND expires_at < NOW()
@@ -51,7 +58,10 @@ export default class Exile extends BotModule {
         }
     }
     
-    private async registerCommands() {
+    /**
+     * Registers commands
+     */
+    private async registerCommands(): Promise<void> {
         await Promise.all([
             this.bot.guild.commands.create({
                 name: "Exile add",
@@ -72,6 +82,11 @@ export default class Exile extends BotModule {
         this.logger.success(`Registered commands`)
     }
 
+    /**
+     * Gets called whenever and interaction is used (commands)
+     * @param interaction 
+     * @param source The member that used the interaction
+     */
     public async contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void> {
         if (interaction.isContextMenuCommand()) {
             this.onContextCommand(interaction)
@@ -82,6 +97,11 @@ export default class Exile extends BotModule {
         }       
     }
 
+    /**
+     * Called when the command type it's a user context interaction (right click - app)
+     * @param interaction
+     * @returns
+     */
     private async onContextCommand(interaction: ContextMenuCommandInteraction): Promise<void> {
         switch (interaction.commandName) {
             case "Exile add": break
@@ -109,6 +129,12 @@ export default class Exile extends BotModule {
         }
     }
 
+    /**
+     * Inizializes the process of exiling a user
+     * @param target The member to be exiled
+     * @param interaction 
+     * @returns 
+     */
     private async requestExileAdd(target: GuildMember, interaction: ContextMenuCommandInteraction) {
         this.logger.info(`${interaction.user.username} requested ${target.user.username} exile add`)
         const { data, error } = await tryCatch(sql`
@@ -151,6 +177,11 @@ export default class Exile extends BotModule {
         await interaction.showModal(modal)
     }
     
+    /**
+     * Triggered when modal is sumbitted
+     * @param interaction 
+     * @returns 
+     */
     private async onModalSumbit(interaction: ModalSubmitInteraction): Promise<void> {
         if (!interaction.customId.startsWith("custos-exile-modal-")) {
             return
@@ -226,6 +257,12 @@ export default class Exile extends BotModule {
         this.logger.info(`${member.user.username} has been readmitted`)
     }
 
+    /**
+     * Inizializes the process of getting exile infos
+     * @param user The target
+     * @param interaction 
+     * @returns 
+     */
     private async requestExileInfo(user: User, interaction: ContextMenuCommandInteraction) {
         this.logger.info(`${interaction.user.username} requested ${user.username} exile infos`)
         const { data, error } = await tryCatch(sql<{ reason: string, given_at: Date, expires_at: Date | null }[]>`

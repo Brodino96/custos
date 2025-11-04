@@ -137,7 +137,7 @@ export default class Exile extends BotModule {
      */
     private async requestExileAdd(target: GuildMember, interaction: ContextMenuCommandInteraction) {
         this.logger.info(`${interaction.user.username} requested ${target.user.username} exile add`)
-        const { data, error } = await tryCatch(sql`
+        const { data, error } = await tryCatch(sql<{}[]>`
             SELECT FROM exiles WHERE user_id = ${target.id} AND active = TRUE
         `)
 

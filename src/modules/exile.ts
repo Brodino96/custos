@@ -146,8 +146,8 @@ export default class Exile extends BotModule {
             return this.logger.error(Locale.generic.dbFailure)
         }
 
-        if (data.lenght > 0) {
-            await this.bot.reply(interaction, `⛔ @<${target.user.id}> is already exiled`)
+        if (data.length > 0) {
+            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is already exiled`)
             return this.logger.info(`${target.user.username} is already exiled`)
         }
 
@@ -200,7 +200,7 @@ export default class Exile extends BotModule {
 
         const targetMember = await this.bot.guild.members.fetch(targetId)
         if (!targetMember) {
-            await this.bot.reply(interaction, `⛔ @<${targetId}> doesn't exists`)
+            await this.bot.reply(interaction, `⛔ <@${targetId}> doesn't exists`)
             return this.logger.error(`Failed to fetch user with id ${targetId}`)
         }
 
@@ -252,7 +252,7 @@ export default class Exile extends BotModule {
         }
 
         if (data.length == 0) {
-            await this.bot.reply(interaction, `⛔ @<${target.user.id}> is not exiled`)
+            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is not exiled`)
             return this.logger.info(`${target.user.username} is not exiled`)
         }
 

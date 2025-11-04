@@ -1,4 +1,4 @@
-import { MessageFlags, User, ApplicationCommandType, ModalBuilder, TextInputStyle, TextInputBuilder, ActionRowBuilder } from "discord.js"
+import { User, ApplicationCommandType, ModalBuilder, TextInputStyle, TextInputBuilder, ActionRowBuilder } from "discord.js"
 import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role, ModalSubmitInteraction, Snowflake } from "discord.js"
 import { BotModule } from "./botmodule"
 import Logger from "../utils/logger"
@@ -269,13 +269,13 @@ export default class Exile extends BotModule {
             return this.logger.info(`${target.user.username} is not exiled`)
         }
 
-        const addBackError = await tryCatch(target.roles.add(data[0].roles.split(",")))
-        if (addBackError.error) {
-            this.logger.error(`Failed to restore roles to ${target.user.username}: ${addBackError.error}`)
+        const { error: addBackError } = await tryCatch(target.roles.add(data[0].roles.split(",")))
+        if (addBackError) {
+            this.logger.error(`Failed to restore roles to ${target.user.username}: ${addBackError}`)
         }
-        const removeExileError = await tryCatch(target.roles.remove(this.roles))
-        if (removeExileError.error) {
-            this.logger.error(`Failed to remove exile roles from ${target.user.username}: ${removeExileError.error}`)
+        const { error: removeExileError } = await tryCatch(target.roles.remove(this.roles))
+        if (removeExileError) {
+            this.logger.error(`Failed to remove exile roles from ${target.user.username}: ${removeExileError}`)
         }
 
         await this.bot.reply(interaction, `✅ <@${target.user.id}> has been readmitted`)

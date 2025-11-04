@@ -6,6 +6,13 @@ CREATE TABLE IF NOT EXISTS exiles (
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ,
     roles TEXT
+);
+
+CREATE TABLE IF NOT EXISTS persistent_roles (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    roles TEXT NOT NULL
 )
 
 /*

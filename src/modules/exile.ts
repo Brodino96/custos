@@ -32,7 +32,7 @@ export default class Exile extends BotModule {
      * @returns
      */
     private async loop(): Promise<void> {
-        const { data, error } = await tryCatch(sql<ExileEntry[]>`
+        const { data, error } = await tryCatch(sql<{ user_id: Snowflake, roles: string }[]>`
             UPDATE exiles SET active = FALSE
             WHERE active = TRUE AND expires_at < NOW()
             RETURNING user_id, roles
@@ -291,13 +291,4 @@ export default class Exile extends BotModule {
 
     public async memberJoined(member: GuildMember): Promise<void> {}
     public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
-}
-
-type ExileEntry = {
-    user_id: string
-    reason: string
-    active: boolean
-    given_at: Date
-    expires_at: Date
-    roles: string
 }

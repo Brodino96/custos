@@ -308,6 +308,24 @@ export default class Exile extends BotModule {
         await this.bot.reply(interaction, `User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **In date**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
     }
 
-    public async memberJoined(member: GuildMember): Promise<void> {}
+    public async memberJoined(member: GuildMember): Promise<void> {
+        /**
+        const { data, error } = await tryCatch(sql<{}[]>`
+            SELECT FROM exiles WHERE user_id = ${member.user.id} AND active = TRUE
+        `)
+
+        if (error) {
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
+        }
+
+        if (data.length === 0) {
+            return this.logger.info(`${member.user.username} is not exiled`)
+        }
+
+        await tryCatch(member.roles.add(this.roles))
+        this.logger.info(`Restored exile roles for ${member.user.username}`)
+        */
+    }
+
     public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
 }

@@ -21,9 +21,9 @@ export default class Exile extends BotModule {
         this.logger.info(`Initializing ${this.moduleName}`)
         this.registerCommands()
 
-        this.checkRoles()
+        this.loop()
         setInterval(() => {
-            this.checkRoles()
+            this.loop()
         }, this.bot.checkInterval)
     }
 
@@ -229,14 +229,20 @@ export default class Exile extends BotModule {
             ? `🕒 <@${targetId}> will be exiled for **${durationDays} days**.\nReason: ${reason}`
             : `⛔ <@${targetId}> will be **permanently exiled**.\nReason: ${reason}`,
         )
-        this.logger.success(`Successfully exiled the user: ${targetMember.user.username}\nfor ${durationDays} days\mReason: ${reason}`)
+        this.logger.success(`Successfully exiled the user: ${targetMember.user.username}, for ${durationDays} days, Reason: ${reason}`)
     }
 
-    private async requestExileRemove(member: GuildMember, interaction: ContextMenuCommandInteraction) {
-        this.logger.info(`${interaction.user.username} requested ${member.user.username} exile removal`)
+    /**
+     * Inizialies the process of removing an exile
+     * @param target The target
+     * @param interaction 
+     * @returns 
+     */
+    private async requestExileRemove(target: GuildMember, interaction: ContextMenuCommandInteraction) {
+        this.logger.info(`${interaction.user.username} requested ${target.user.username} exile removal`)
         const { data, error } = await tryCatch(sql<{ roles: string }[]>`
             UPDATE exiles SET active = FALSE
-            WHERE user_id = ${member.user.id} AND active = TRUE
+            WHERE user_id = ${target.user.id} AND active = TRUE
             RETURNING roles
         `)
 
@@ -246,15 +252,15 @@ export default class Exile extends BotModule {
         }
 
         if (data.length == 0) {
-            await this.bot.reply(interaction, `⛔ @<${member.user.id}> is not exiled`)
-            return this.logger.info(`${member.user.username} is not exiled`)
+            await this.bot.reply(interaction, `⛔ @<${target.user.id}> is not exiled`)
+            return this.logger.info(`${target.user.username} is not exiled`)
         }
 
-        await tryCatch(member.roles.add(data[0].roles.split(",")))
-        await tryCatch(member.roles.remove(this.roles))
+        await tryCatch(target.roles.add(data[0].roles.split(",")))
+        await tryCatch(target.roles.remove(this.roles))
 
-        await this.bot.reply(interaction, `✅ @<${member.user.id}> has been readmitted with roles ${data[0].roles}`)
-        this.logger.info(`${member.user.username} has been readmitted`)
+        await this.bot.reply(interaction, `✅ @<${target.user.id}> has been readmitted with roles ${data[0].roles}`)
+        this.logger.info(`${target.user.username} has been readmitted`)
     }
 
     /**
@@ -279,7 +285,7 @@ export default class Exile extends BotModule {
             return this.logger.info(`${user.username} is not exiled`)
         }
         
-        this.logger.info(`${user.username} is exiled\nReason: ${data[0].reason}\nIn Date: ${data[0].given_at}\nUntil: ${data[0].expires_at}`)
+        this.logger.info(`${user.username} is exiled, Reason: ${data[0].reason}, In Date: ${data[0].given_at}, Until: ${data[0].expires_at}`)
         await this.bot.reply(interaction, `User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **In date**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
     }
 

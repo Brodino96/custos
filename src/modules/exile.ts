@@ -210,6 +210,7 @@ export default class Exile extends BotModule {
             : null
         
         const targetRoles = targetMember.roles.cache
+            .filter(role => role.id !== this.bot.guild.id && !role.managed)
             .map(role => role.id)
         
         const { error } = await tryCatch(sql`

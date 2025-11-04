@@ -19,6 +19,7 @@ export class Bot {
 		this.config = config
 		this.logger = new Logger("Bot")
 		this.checkInterval = Math.floor(this.config.checkInterval * 1000 * 60 * 60)
+		this.logger.info(`Check interval: ${this.checkInterval} ms`)
 		this.client = new Client({
 			intents: ["Guilds", "GuildMessages", "GuildMembers", "MessageContent"],
 		})

@@ -278,7 +278,7 @@ export default class Exile extends BotModule {
             this.logger.error(`Failed to remove exile roles from ${target.user.username}: ${removeExileError.error}`)
         }
 
-        await this.bot.reply(interaction, `✅ @<${target.user.id}> has been readmitted with roles ${data[0].roles}`)
+        await this.bot.reply(interaction, `✅ <@${target.user.id}> has been readmitted`)
         this.logger.info(`${target.user.username} has been readmitted`)
     }
 

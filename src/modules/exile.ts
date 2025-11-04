@@ -51,9 +51,15 @@ export default class Exile extends BotModule {
             if (!member) {
                 continue
             }
-            const role = user.roles.split(",")
-            await tryCatch(member.roles.add(role))
-            await tryCatch(member.roles.remove(this.roles))
+            const roleIds = user.roles.split(",")
+            const { error: addError } = await tryCatch(member.roles.add(roleIds))
+            if (addError) {
+                this.logger.error(`Failed to restore roles to ${member.user.username} on exile expiry: ${addError}`)
+            }
+            const { error: removeError } = await tryCatch(member.roles.remove(this.roles))
+            if (removeError) {
+                this.logger.error(`Failed to remove exile roles from ${member.user.username} on expiry: ${removeError}`)
+            }
             this.logger.success(`${member.user.username}'s exile expired`)
         }
     }
@@ -223,8 +229,14 @@ export default class Exile extends BotModule {
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
-        await tryCatch(targetMember.roles.remove(targetMember.roles.cache))
-        await tryCatch(targetMember.roles.add(this.roles))
+        const { error: removeError} = await tryCatch(targetMember.roles.remove(targetMember.roles.cache))
+        if (removeError) {
+            this.logger.error(`Failed to remove roles from ${targetMember.user.username}: ${removeError}`)
+        }
+        const { error: addError} = await tryCatch(targetMember.roles.add(this.roles))
+        if (addError) {
+            this.logger.error(`Failed to add exile roles to ${targetMember.user.username}: ${addError}`)
+        }
 
         await this.bot.reply(interaction, durationDays
             ? `🕒 <@${targetId}> will be exiled for **${durationDays} days**.\nReason: ${reason}`
@@ -257,8 +269,14 @@ export default class Exile extends BotModule {
             return this.logger.info(`${target.user.username} is not exiled`)
         }
 
-        await tryCatch(target.roles.add(data[0].roles.split(",")))
-        await tryCatch(target.roles.remove(this.roles))
+        const addBackError = await tryCatch(target.roles.add(data[0].roles.split(",")))
+        if (addBackError.error) {
+            this.logger.error(`Failed to restore roles to ${target.user.username}: ${addBackError.error}`)
+        }
+        const removeExileError = await tryCatch(target.roles.remove(this.roles))
+        if (removeExileError.error) {
+            this.logger.error(`Failed to remove exile roles from ${target.user.username}: ${removeExileError.error}`)
+        }
 
         await this.bot.reply(interaction, `✅ @<${target.user.id}> has been readmitted with roles ${data[0].roles}`)
         this.logger.info(`${target.user.username} has been readmitted`)

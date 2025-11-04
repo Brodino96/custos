@@ -1,9 +1,10 @@
-import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, PartialGuildMember, Role } from "discord.js"
+import { Client, MessageFlags } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, Interaction, ModalSubmitInteraction, PartialGuildMember, Role } from "discord.js"
 import type { BotModule, BotModuleMethod } from "./modules/botmodule"
 import type { ConfigType } from "./utils/config"
 import { tryCatch } from "typecatch"
 import Logger from "./utils/logger"
+import Locale from "./utils/locale"
 
 export class Bot {
 
@@ -48,19 +49,35 @@ export class Bot {
 	private registerEvents() {
 
 		this.client.on("guildMemberAdd", async (member: GuildMember) => {
-			this.logger.info(`Member [${member.user.displayName}] joined the server`)
+			this.logger.info(`${member.user.username} joined the Discord`)
 			this.callModule("memberJoined", member)
 		})
 
 		this.client.on("guildMemberRemove", async (member: GuildMember | PartialGuildMember) => {
-			this.logger.info(`Member [${member.user.displayName}] left the server`)
+			this.logger.info(`${member.user.username} left the Discord`)
 			this.callModule("memberLeft", member)
 		})
 
 		//@ts-ignore
 		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
-			this.callModule("contextInteraction", interaction)
+			this.logger.info(`${interaction.user.username} used the command "${interaction.commandName}"`)
+			this.onInteractionCreate(interaction)
 		})
+	}
+
+	private async onInteractionCreate(interaction: ContextMenuCommandInteraction) {
+		const source = await this.guild.members.fetch(interaction.user.id)
+		if (!source) {
+			await this.reply(interaction, Locale.generic.noSource)
+			return this.logger.error(Locale.generic.noSource)
+		}
+
+		if (!this.isModerator(source)) {
+			await this.reply(interaction, Locale.generic.noPermission)
+			return this.logger.warn(`${source.user.username} doesn't have permission to use commands`)
+		}
+
+		this.callModule("contextInteraction", interaction, source)
 	}
 
 	/**
@@ -118,4 +135,10 @@ export class Bot {
 		this.modules.push(new module(this, this.config))
 	}
 
+	public async reply(interaction: ContextMenuCommandInteraction | ModalSubmitInteraction, message: string) {
+		interaction.reply({
+			content: message,
+			flags: MessageFlags.Ephemeral
+		})
+	}
 }

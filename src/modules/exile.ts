@@ -1,5 +1,5 @@
 import { MessageFlags, User, ApplicationCommandType, ModalBuilder, TextInputStyle, TextInputBuilder, ActionRowBuilder } from "discord.js"
-import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role, ModalSubmitInteraction } from "discord.js"
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role, ModalSubmitInteraction, Snowflake } from "discord.js"
 import { BotModule } from "./botmodule"
 import Logger from "../utils/logger"
 import Locale from "../utils/locale"
@@ -14,9 +14,41 @@ export default class Exile extends BotModule {
     private roles: Role[] = []
     
     public async init(): Promise<void> {
-        this.logger.info(`Initializing ${this.moduleName}`)
         this.roles = await this.bot.getRoles(this.config.roles, this.moduleName)
+        this.logger.info(`Initializing ${this.moduleName}`)
         this.registerCommands()
+
+        this.checkRoles()
+        setInterval(() => {
+            this.checkRoles()
+        }, this.bot.checkInterval)
+    }
+
+    private async checkRoles() {
+        const { data, error } = await tryCatch(sql<ExileEntry[]>`
+            UPDATE exiles SET active = FALSE
+            WHERE active = TRUE AND expires_at < NOW()
+            RETURNING user_id, roles
+        `)
+
+        if (error) {
+            return this.logger.error(Locale.generic.dbFailure)
+        }
+
+        if (data.length == 0) {
+            return this.logger.info("No exile expired")
+        }
+
+        for (const user of data) {
+            const member = await this.bot.guild.members.fetch(user.user_id)
+            if (!member) {
+                continue
+            }
+            const role = user.roles.split(",")
+            await tryCatch(member.roles.add(role))
+            await tryCatch(member.roles.remove(this.roles))
+            this.logger.success(`${member.user.username}'s exile expired`)
+        }
     }
     
     private async registerCommands() {
@@ -40,8 +72,7 @@ export default class Exile extends BotModule {
         this.logger.success(`Registered commands`)
     }
 
-
-    public async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {
+    public async contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void> {
         if (interaction.isContextMenuCommand()) {
             this.onContextCommand(interaction)
         }
@@ -51,7 +82,6 @@ export default class Exile extends BotModule {
         }       
     }
 
-
     private async onContextCommand(interaction: ContextMenuCommandInteraction): Promise<void> {
         switch (interaction.commandName) {
             case "Exile add": break
@@ -60,46 +90,41 @@ export default class Exile extends BotModule {
             default: return
         }
 
-        const member = await this.bot.guild.members.fetch(interaction.user.id)
-        if (!member) {
-            await interaction.reply({
-                content: Locale.noSource,
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.error("Command user is null")
-        }
-
-        if (!this.bot.isModerator(member)) {
-            await interaction.reply({
-                content: Locale.noPermission,
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.warn("Command user is not a moderator")
-        }
-
         const targetMember = await this.bot.guild.members.fetch(interaction.targetId)
         if (!targetMember) {
-            await interaction.reply({
-                content: Locale.noTarget,
-                flags: MessageFlags.Ephemeral
-            })
+            await this.bot.reply(interaction, Locale.generic.noTarget)
             return this.logger.error("Target member is null")
         }
 
         switch (interaction.commandName) {
             case "Exile info":
-                await this.getInfo(targetMember.user, interaction)
+                await this.requestExileInfo(targetMember.user, interaction)
                 break
             case "Exile add":
-                await this.showExileModal(targetMember, interaction)
+                await this.requestExileAdd(targetMember, interaction)
                 break
             case "Exile remove":
-                await this.removeExile(targetMember, interaction)
+                await this.requestExileRemove(targetMember, interaction)
                 break
         }
     }
-    
-    private async showExileModal(target: GuildMember, interaction: ContextMenuCommandInteraction) {
+
+    private async requestExileAdd(target: GuildMember, interaction: ContextMenuCommandInteraction) {
+        this.logger.info(`${interaction.user.username} requested ${target.user.username} exile add`)
+        const { data, error } = await tryCatch(sql`
+            SELECT FROM exiles WHERE user_id = ${target.id} AND active = TRUE
+        `)
+
+        if (error) {
+            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            return this.logger.error(Locale.generic.dbFailure)
+        }
+
+        if (data.lenght > 0) {
+            await this.bot.reply(interaction, `⛔ @<${target.user.id}> is already exiled`)
+            return this.logger.info(`${target.user.username} is already exiled`)
+        }
+
         const modal = new ModalBuilder()
             .setCustomId(`custos-exile-modal-${target.id}`)
             .setTitle(`Exile ${target.user.username}`)
@@ -115,7 +140,7 @@ export default class Exile extends BotModule {
             .setCustomId("duration")
             .setLabel("Duration (in days, leave empty for permanent)")
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder("example: 7")
+            .setPlaceholder("Example: 7")
             .setRequired(false)
 
         const firstRow = new ActionRowBuilder<TextInputBuilder>().addComponents(reasonInput)
@@ -138,20 +163,14 @@ export default class Exile extends BotModule {
         const durationDays = durationRaw.trim() === "" ? null : parseInt(durationRaw, 10)
 
         if (durationRaw && (!durationDays || durationDays < 0)) {
-            await interaction.reply({
-                content: "Invalid number of days. Please enter a valid number or leave it blank",
-                flags: MessageFlags.Ephemeral
-            })
-            return
+            await this.bot.reply(interaction, `⛔ ${durationDays} is an invalid number of days`)
+            return this.logger.info(`${interaction.user.username} put an invalid number of days (${durationDays})`)
         }
 
         const targetMember = await this.bot.guild.members.fetch(targetId)
         if (!targetMember) {
-            await interaction.reply({
-                content: Locale.noTarget,
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.error("Failed to fetch discord user")
+            await this.bot.reply(interaction, `⛔ @<${targetId}> doesn't exists`)
+            return this.logger.error(`Failed to fetch user with id ${targetId}`)
         }
 
         const now = new Date()
@@ -168,91 +187,74 @@ export default class Exile extends BotModule {
         `)
 
         if (error) {
-            await interaction.reply({
-                content: "Failed to update database",
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.error(`Failed to update database, ${error}`)
+            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
-        await targetMember.roles.remove(targetMember.roles.cache)
-        await targetMember.roles.add(this.roles)
+        await tryCatch(targetMember.roles.remove(targetMember.roles.cache))
+        await tryCatch(targetMember.roles.add(this.roles))
 
-        await interaction.reply({
-            content: durationDays
-                ? `🕒 <@${targetId}> will be exiled for **${durationDays} days**.\nReason: ${reason}`
-                : `⛔ <@${targetId}> will be **permanently exiled**.\nReason: ${reason}`,
-            flags: MessageFlags.Ephemeral
-        })
-        this.logger.success(`Successfully exiled the user: ${targetMember.user.username}`)
+        await this.bot.reply(interaction, durationDays
+            ? `🕒 <@${targetId}> will be exiled for **${durationDays} days**.\nReason: ${reason}`
+            : `⛔ <@${targetId}> will be **permanently exiled**.\nReason: ${reason}`,
+        )
+        this.logger.success(`Successfully exiled the user: ${targetMember.user.username}\nfor ${durationDays} days\mReason: ${reason}`)
     }
 
-    private async removeExile(member: GuildMember, interaction: ContextMenuCommandInteraction) {
-        const { data, error } = await tryCatch(sql`
+    private async requestExileRemove(member: GuildMember, interaction: ContextMenuCommandInteraction) {
+        this.logger.info(`${interaction.user.username} requested ${member.user.username} exile removal`)
+        const { data, error } = await tryCatch(sql<{ roles: string }[]>`
             UPDATE exiles SET active = FALSE
             WHERE user_id = ${member.user.id} AND active = TRUE
             RETURNING roles
         `)
 
         if (error) {
-            await interaction.reply({
-                content: "Failed to access the database",
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.error(`Failed to update database`)
+            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
-        if (!data[0]) {
-            await interaction.reply({
-                content: "User wasn't exiled",
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.info("The selected user wasn't exiled")
+        if (data.length == 0) {
+            await this.bot.reply(interaction, `⛔ @<${member.user.id}> is not exiled`)
+            return this.logger.info(`${member.user.username} is not exiled`)
         }
 
-        const newRolesToGive = data[0]["roles"].split(",")
-
-        for (const role of newRolesToGive) {
-            await tryCatch(member.roles.add(role))
-        }
-
+        await tryCatch(member.roles.add(data[0].roles.split(",")))
         await tryCatch(member.roles.remove(this.roles))
 
-        await interaction.reply({
-            content: "User successfully readmitted",
-            flags: MessageFlags.Ephemeral
-        })
+        await this.bot.reply(interaction, `✅ @<${member.user.id}> has been readmitted with roles ${data[0].roles}`)
+        this.logger.info(`${member.user.username} has been readmitted`)
     }
 
-    private async getInfo(user: User, interaction: ContextMenuCommandInteraction) {
-        const { data, error } = await tryCatch(sql`
-            SELECT reason, given_at FROM exiles WHERE user_id = ${user.id} AND active = TRUE
+    private async requestExileInfo(user: User, interaction: ContextMenuCommandInteraction) {
+        this.logger.info(`${interaction.user.username} requested ${user.username} exile infos`)
+        const { data, error } = await tryCatch(sql<{ reason: string, given_at: Date, expires_at: Date | null }[]>`
+            SELECT reason, given_at, expires_at FROM exiles WHERE user_id = ${user.id} AND active = TRUE
         `)
 
         if (error) {
-            await interaction.reply({
-                content: "Failed to fetch info from the database",
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.error(`Failed to get exile info from the database, ${error}`)
+            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
-        const info = data[0]
-
-        if (info == null) {
-            await interaction.reply({
-                content: "User has not been exiled",
-                flags: MessageFlags.Ephemeral
-            })
-            return this.logger.warn("Target user is not exiled")
+        if (data.length == 0) {
+            await this.bot.reply(interaction, `⛔ <@${user.id}> has not been exiled`)
+            return this.logger.info(`${user.username} is not exiled`)
         }
         
-        await interaction.reply({
-            content: `User has been banned for reason: ${info["reason"]}\nin date: ${info["given_at"]}`,
-            flags: MessageFlags.Ephemeral
-        })
+        this.logger.info(`${user.username} is exiled\nReason: ${data[0].reason}\nIn Date: ${data[0].given_at}\nUntil: ${data[0].expires_at}`)
+        await this.bot.reply(interaction, `User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **In date**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
     }
 
     public async memberJoined(member: GuildMember): Promise<void> {}
     public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
+}
+
+type ExileEntry = {
+    user_id: string
+    reason: string
+    active: boolean
+    given_at: Date
+    expires_at: Date
+    roles: string
 }

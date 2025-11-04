@@ -19,5 +19,5 @@ export abstract class BotModule {
 
 	abstract memberJoined(member: GuildMember): Promise<void>
 	abstract memberLeft(member: GuildMember | PartialGuildMember): Promise<void>
-	abstract contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void>
+	abstract contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void>
 }

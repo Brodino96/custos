@@ -27,6 +27,8 @@ COPY --from=build /usr/src/app/entrypoint.sh /usr/src/app/
 
 # Make entrypoint script executable
 RUN chmod +x /usr/src/app/entrypoint.sh
+# Fix line endings for Windows compatibility
+RUN sed -i 's/\r$//' /usr/src/app/entrypoint.sh
 
 # run the app (entrypoint runs as root to create config, then app runs as bun)
 EXPOSE 8080/tcp

@@ -142,6 +142,11 @@ export default class Exile extends BotModule {
      * @returns 
      */
     private async requestExileAdd(target: GuildMember, interaction: ContextMenuCommandInteraction) {
+        if (await this.bot.isModerator(target)) {
+            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is a moderator`)
+            return this.logger.info(`Stopping because ${target.user.username} is a moderator`)
+        }
+
         this.logger.info(`${interaction.user.username} requested ${target.user.username} exile add`)
         const { data, error } = await tryCatch(sql<{}[]>`
             SELECT FROM exiles WHERE user_id = ${target.id} AND active = TRUE

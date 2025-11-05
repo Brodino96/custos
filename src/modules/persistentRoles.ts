@@ -35,9 +35,9 @@ export default class PersistentRoles extends BotModule {
         }
 
         const roleIds = data[0].roles.split(",")
-        const { error: addError } = await tryCatch(member.roles.add(roleIds))
-        if (addError) {
-            this.logger.error(`Failed to restore roles to ${member.user.username}, ${addError}`)
+        const { error: roleUpdateError } = await tryCatch(member.roles.set(roleIds, "Restored roles from quit"))
+        if (roleUpdateError) {
+            this.logger.error(`Failed to restore roles to ${member.user.username}, ${roleUpdateError}`)
         }
 
         this.logger.success(`${member.user.username}'s roles restored`)

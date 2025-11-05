@@ -13,7 +13,7 @@
 		"typescript": "^5.9.3"
 	},
 	"dependencies": {
-		"discord.js": "^14.24.1",
+		"discord.js": "^14.24.2",
 		"rolldown": "^1.0.0-beta.9-commit.d91dfb5",
 		"typecatch": "^0.2.5"
 	}

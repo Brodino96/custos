@@ -238,7 +238,7 @@ export default class Exile extends BotModule {
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
-        const { error: roleUpdateError } = await tryCatch(targetMember.roles.set(this.config.roles, "Exiled"))
+        const { error: roleUpdateError } = await tryCatch(targetMember.roles.set(this.config.roles, reason))
         if (roleUpdateError) {
             this.logger.error(`Failed to update roles for: ${targetMember.user.username}, ${roleUpdateError}`)
         }

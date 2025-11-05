@@ -12,8 +12,10 @@ services:
       timeout: 5s
       retries: 10
     environment:
-      POSTGRES_PASSWORD: postgres
-      PGUSER: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGUSER: ${POSTGRES_USER}
 
   whodb:
     image: clidey/whodb
@@ -29,4 +31,4 @@ services:
       db:
         condition: service_healthy
     environment:
-      POSTGRES_URL: "postgres://postgres:postgres@db:5432/postgres"
+      POSTGRES_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}

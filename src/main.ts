@@ -6,12 +6,13 @@ import PersistentRoles from "./modules/persistentRoles"
 const config = loadConfig()
 const bot = new Bot(config)
 
+if (config.persistentRoles.enabled) {
+	bot.addModule(PersistentRoles)
+}
+
 if (config.exile.enabled) {
 	bot.addModule(Exile)
 }
 
-if (config.persistentRoles.enabled) {
-	bot.addModule(PersistentRoles)
-}
 
 await bot.init()

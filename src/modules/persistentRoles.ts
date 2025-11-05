@@ -1,9 +1,9 @@
-import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction } from "discord.js";
-import { BotModule } from "./botmodule";
-import Logger from "../utils/logger";
-import { tryCatch } from "typecatch";
-import { sql } from "bun";
-import Locale from "../utils/locale";
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction } from "discord.js"
+import { BotModule } from "./botmodule"
+import Logger from "../utils/logger"
+import { tryCatch } from "typecatch"
+import { sql } from "bun"
+import Locale from "../utils/locale"
 
 export default class PersistentRoles extends BotModule {
 

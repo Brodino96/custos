@@ -309,7 +309,6 @@ export default class Exile extends BotModule {
     }
 
     public async memberJoined(member: GuildMember): Promise<void> {
-        /**
         const { data, error } = await tryCatch(sql<{}[]>`
             SELECT FROM exiles WHERE user_id = ${member.user.id} AND active = TRUE
         `)
@@ -324,7 +323,6 @@ export default class Exile extends BotModule {
 
         await tryCatch(member.roles.add(this.roles))
         this.logger.info(`Restored exile roles for ${member.user.username}`)
-        */
     }
 
     public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}

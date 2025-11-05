@@ -7,8 +7,7 @@ import Locale from "../utils/locale"
 
 export default class PersistentRoles extends BotModule {
 
-    private readonly moduleName = "PersistentRoles"
-    private readonly logger = new Logger(this.moduleName)
+    private readonly logger = new Logger("PersistentRoles")
     private readonly exeptions = new Set()
 
     public async init(): Promise<void> {

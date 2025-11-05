@@ -9,8 +9,7 @@ import { tryCatch } from "typecatch"
 export default class Exile extends BotModule {
     
     private readonly config = this.baseConfig.exile
-    private readonly moduleName = "Exile"
-    private readonly logger = new Logger(this.moduleName)
+    private readonly logger = new Logger("Exile")
     
     /**
      * Initializes the module

@@ -19,6 +19,7 @@ export default class Exile extends BotModule {
         this.logger.info("Initializing module")
         this.registerCommands()
 
+        this.logger.info("Initializing loop")
         this.loop()
         setInterval(() => {
             this.loop()
@@ -83,7 +84,7 @@ export default class Exile extends BotModule {
             })
         ])
         
-        this.logger.success(`Registered commands`)
+        this.logger.success("Registered commands")
     }
 
     /**
@@ -119,6 +120,8 @@ export default class Exile extends BotModule {
             await this.bot.reply(interaction, Locale.generic.noTarget)
             return this.logger.error("Target member is null")
         }
+
+        this.logger.info(`Command target: ${targetMember.user.username}`)
 
         switch (interaction.commandName) {
             case "Exile info":
@@ -183,6 +186,8 @@ export default class Exile extends BotModule {
 
         modal.addComponents(firstRow, secondRow)
 
+        this.logger.info(`Showing modal to ${interaction.user.username}`)
+
         await interaction.showModal(modal)
     }
     
@@ -213,6 +218,8 @@ export default class Exile extends BotModule {
             return this.logger.error(`Failed to fetch user with id ${targetId}`)
         }
 
+        this.logger.info(`Modal sumbitted by ${interaction.user.username} to exile ${targetMember.user.username} for ${durationDays} days`)
+
         const now = new Date()
         const expiresAt = durationDays !== null
             ? new Date(now.setDate(now.getDate() + durationDays)).toISOString()
@@ -221,6 +228,8 @@ export default class Exile extends BotModule {
         const targetRoles = targetMember.roles.cache
             .filter(role => role.id !== this.bot.guild.id && !role.managed)
             .map(role => role.id)
+
+        this.logger.info(`${targetMember.user.username} has this roles: ${targetMember.roles.cache.map(role => role.name)}`)
         
         const { error } = await tryCatch(sql`
             INSERT INTO exiles (user_id, reason, active, given_at, expires_at, roles)
@@ -272,6 +281,8 @@ export default class Exile extends BotModule {
             return this.logger.info(`${target.user.username} is not exiled`)
         }
 
+        this.logger.info(`Restoring roles to ${target.user.username}: ${data[0].roles}`)
+
         const { error: addBackError } = await tryCatch(target.roles.add(data[0].roles.split(","), "Readmitted after exile"))
         if (addBackError) {
             this.logger.error(`Failed to restore roles to ${target.user.username}: ${addBackError}`)
@@ -303,12 +314,16 @@ export default class Exile extends BotModule {
         }
 
         if (data.length == 0) {
-            await this.bot.reply(interaction, `⛔ <@${user.id}> has not been exiled`)
+            await this.bot.reply(interaction, `⛔ <@${user.id}> is not exiled`)
             return this.logger.info(`${user.username} is not exiled`)
         }
+
+        this.logger.info(`${user.username} is exiled`)
+        this.logger.info(`Reason: ${data[0].reason}`)
+        this.logger.info(`Since: ${data[0].reason}`)
+        this.logger.info(`Until: ${data[0].expires_at}`)
         
-        this.logger.info(`${user.username} is exiled, Reason: ${data[0].reason}, In Date: ${data[0].given_at}, Until: ${data[0].expires_at}`)
-        await this.bot.reply(interaction, `User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **In date**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
+        await this.bot.reply(interaction, `User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **Since**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
     }
 
     public async memberJoined(member: GuildMember): Promise<void> {

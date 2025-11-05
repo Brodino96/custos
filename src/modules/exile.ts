@@ -11,14 +11,12 @@ export default class Exile extends BotModule {
     private readonly config = this.baseConfig.exile
     private readonly moduleName = "Exile"
     private readonly logger = new Logger(this.moduleName)
-    private roles: Role[] = []
     
     /**
      * Initializes the module
      */
     public async init(): Promise<void> {
-        this.roles = await this.bot.getRoles(this.config.roles, this.moduleName)
-        this.logger.info(`Initializing ${this.moduleName}`)
+        this.logger.info("Initializing module")
         this.registerCommands()
 
         this.loop()
@@ -56,7 +54,7 @@ export default class Exile extends BotModule {
             if (addError) {
                 this.logger.error(`Failed to restore roles to ${member.user.username} on exile expiry: ${addError}`)
             }
-            const { error: removeError } = await tryCatch(member.roles.remove(this.roles, "Readmitted after exile"))
+            const { error: removeError } = await tryCatch(member.roles.remove(this.config.roles, "Readmitted after exile"))
             if (removeError) {
                 this.logger.error(`Failed to remove exile roles from ${member.user.username} on expiry: ${removeError}`)
             }
@@ -234,11 +232,11 @@ export default class Exile extends BotModule {
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
-        const { error: removeError} = await tryCatch(targetMember.roles.remove(targetMember.roles.cache, "Exiled"))
+        const { error: removeError} = await tryCatch(targetMember.roles.remove(targetRoles, "Exiled"))
         if (removeError) {
             this.logger.error(`Failed to remove roles from ${targetMember.user.username}: ${removeError}`)
         }
-        const { error: addError} = await tryCatch(targetMember.roles.add(this.roles, "Exiled"))
+        const { error: addError} = await tryCatch(targetMember.roles.add(this.config.roles, "Exiled"))
         if (addError) {
             this.logger.error(`Failed to add exile roles to ${targetMember.user.username}: ${addError}`)
         }
@@ -278,7 +276,7 @@ export default class Exile extends BotModule {
         if (addBackError) {
             this.logger.error(`Failed to restore roles to ${target.user.username}: ${addBackError}`)
         }
-        const { error: removeExileError } = await tryCatch(target.roles.remove(this.roles, "Readmitted after exile"))
+        const { error: removeExileError } = await tryCatch(target.roles.remove(this.config.roles, "Readmitted after exile"))
         if (removeExileError) {
             this.logger.error(`Failed to remove exile roles from ${target.user.username}: ${removeExileError}`)
         }
@@ -326,7 +324,7 @@ export default class Exile extends BotModule {
             return this.logger.info(`${member.user.username} is not exiled`)
         }
 
-        await tryCatch(member.roles.add(this.roles))
+        await tryCatch(member.roles.add(this.config.roles))
         this.logger.info(`Restored exile roles for ${member.user.username}`)
     }
 

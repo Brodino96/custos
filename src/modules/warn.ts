@@ -144,7 +144,7 @@ export default class Warn extends BotModule {
             return this.logger.info(`${targetMember.user.username} has no active warns to remove`)
         }
 
-        const { error: updateError } = await tryCatch(sql`
+        const { data: updateResult, error: updateError } = await tryCatch(sql`
             UPDATE warns SET active = FALSE WHERE ID = (
                 SELECT ID FROM warns WHERE user_id = ${targetMember.user.id} AND active = TRUE ORDER BY ID LIMIT 1
         )`)
@@ -152,6 +152,11 @@ export default class Warn extends BotModule {
         if (updateError) {
             await this.bot.reply(interaction, Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${updateError}`)
+        }
+
+        if (updateResult.rowCount === 0) {
+            await this.bot.reply(interaction, `⛔ <@${targetMember.user.id}> doesn't have any warns`)
+            return this.logger.info(`${targetMember.user.username} doesn't have any warns to remove`)
         }
 
         for (let i = this.config.roles.length - 1; i >= 0; i--) {

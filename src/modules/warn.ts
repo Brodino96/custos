@@ -147,8 +147,7 @@ export default class Warn extends BotModule {
         const { error: updateError } = await tryCatch(sql`
             UPDATE warns 
             SET active = FALSE 
-            WHERE user_id = ${targetMember.user.id} AND active = TRUE 
-            ORDER BY given_at DESC 
+            WHERE user_id = ${targetMember.user.id} AND active = TRUE
             LIMIT 1
         `)
 

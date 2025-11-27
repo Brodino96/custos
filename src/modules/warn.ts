@@ -121,7 +121,50 @@ export default class Warn extends BotModule {
     }
 
     private async removeWarn(targetMember: GuildMember, interaction: ContextMenuCommandInteraction<CacheType>) {
-        throw new Error("Method not implemented.");
+        if (await this.bot.isModerator(targetMember)) {
+            await this.bot.reply(interaction, `⛔ <@${targetMember.user.id}> is a moderator`)
+            return this.logger.info(`Stopping because ${targetMember.user.username} is a moderator`)
+        }
+
+        this.logger.info(`${interaction.user.username} requested ${targetMember.user.username} warn removal`)
+
+        const { data: activeWarns, error: countError } = await tryCatch(sql<{ count: number }[]>`
+            SELECT COUNT(*) AS count FROM warns WHERE user_id = ${targetMember.id} AND active = TRUE
+        `)
+
+        if (countError) {
+            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            return this.logger.error(`${Locale.generic.dbFailure}, ${countError}`)
+        }
+
+        if (activeWarns[0].count === 0) {
+            await this.bot.reply(interaction, `⛔ <@${targetMember.user.id}> has no active warns to remove`)
+            return this.logger.info(`${targetMember.user.username} has no active warns to remove`)
+        }
+
+        const { error: updateError } = await tryCatch(sql`
+            UPDATE warns 
+            SET active = FALSE 
+            WHERE user_id = ${targetMember.user.id} AND active = TRUE 
+            ORDER BY given_at DESC 
+            LIMIT 1
+        `)
+
+        if (updateError) {
+            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            return this.logger.error(`${Locale.generic.dbFailure}, ${updateError}`)
+        }
+
+        for (let i = this.config.roles.length - 1; i >= 0; i--) {
+            const warnRole = this.config.roles[i]
+            if (targetMember.roles.cache.has(warnRole)) {
+                await targetMember.roles.remove(warnRole)
+                break
+            }
+        }
+
+        await this.bot.reply(interaction, `✅ Removed one warn from <@${targetMember.user.id}>`)
+        this.logger.success(`Successfully removed warn from ${targetMember.user.username}`)
     }
 
 

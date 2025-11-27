@@ -115,6 +115,8 @@ export default class Warn extends BotModule {
                 return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
             }
 
+            await this.bot.reply(interaction, `✅ <@${target.user.id}> has been warned`)
+
             return
         }
 

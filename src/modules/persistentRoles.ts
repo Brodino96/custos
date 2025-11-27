@@ -15,6 +15,9 @@ export default class PersistentRoles extends BotModule {
         for (const exileRole of this.baseConfig.exile.roles) {
             this.exeptions.add(exileRole)
         }
+        for (const warnRole of this.baseConfig.warn.roles) {
+            this.exeptions.add(warnRole)
+        }
     }
 
     public async memberJoined(member: GuildMember): Promise<void> {

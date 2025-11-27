@@ -168,10 +168,24 @@ export default class Warn extends BotModule {
 
 
     public async memberJoined(member: GuildMember): Promise<void> {
-        throw new Error("Method not implemented.");
+        const { data, error } = await tryCatch(sql<{}[]>`
+            SELECT FROM warns WHERE user_id = ${member.user.id} AND active = TRUE
+        `)
+
+        if (error) {
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
+        }
+
+        if (data.length === 0) {
+            return this.logger.info(`${member.user.username} is not warned`)
+        }
+
+        for (let i = 0; i < data.length; i++) {
+            member.roles.add(this.config.roles[i])
+        }
+
+        this.logger.info(`Restored warns roles for ${member.user.username}`)
     }
-    public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {
-        throw new Error("Method not implemented.");
-    }
-    
+
+    public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
 }

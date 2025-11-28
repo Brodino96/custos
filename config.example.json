@@ -1,7 +1,7 @@
 {
 
     "checkInterval": 2,
-    
+
     "bot": {
         "token": "PUT-YOUR-DISCORD-BOT-TOKEN-HERE",
         "guildId": "111111111111111111",
@@ -10,32 +10,11 @@
             "111111111111111111"
         ]
     },
-    
-    "joinRoles": {
-        "enabled": true,
-        "roles": [
-            "111111111111111111"
-        ],
-        "expires": true,
-        "duration": 30
-    },
-    
-    "switchingRoles": {
-        "enabled": true,
-        "roles": {
-            "111111111111111111": [
-                "111111111111111111",
-                "111111111111111111",
-                "111111111111111111"
-            ]
-        },
-        "duration": 30
-    },
-    
+
     "persistentRoles": {
         "enabled": true
     },
-    
+
     "warn": {
         "enabled": true,
         "roles": [

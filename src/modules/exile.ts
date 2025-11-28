@@ -1,5 +1,5 @@
 import { User, ApplicationCommandType, ModalBuilder, TextInputStyle, TextInputBuilder, ActionRowBuilder } from "discord.js"
-import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role, ModalSubmitInteraction, Snowflake } from "discord.js"
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, ModalSubmitInteraction, Snowflake } from "discord.js"
 import { BotModule } from "./botmodule"
 import Logger from "../utils/logger"
 import Locale from "../utils/locale"

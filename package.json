@@ -4,14 +4,14 @@
 	"version": "1.0.0",
 	"scripts": {
 		"dev": "bunx rolldown -c",
-		"bundle": "tsc --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c"
+		"bundle": "tsgo --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c"
 	},
 	"type": "module",
 	"devDependencies": {
 		"@types/bun": "latest"
 	},
 	"peerDependencies": {
-		"typescript": "^5.9.3"
+		"@typescript/native-preview": "^7.0.0-dev.20251205.1"
 	},
 	"dependencies": {
 		"discord.js": "^14.25.1",

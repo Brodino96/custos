@@ -1,5 +1,5 @@
 import { Client, MessageFlags } from "discord.js"
-import type { CommandInteraction, ContextMenuCommandInteraction, Guild, GuildMember, Interaction, ModalSubmitInteraction, PartialGuildMember, Role } from "discord.js"
+import type { CommandInteraction, Guild, GuildMember, Interaction, PartialGuildMember } from "discord.js"
 import type { BotModule, BotModuleMethod } from "./modules/botmodule"
 import type { ConfigType } from "./utils/config"
 import { tryCatch } from "typecatch"
@@ -100,19 +100,6 @@ export class Bot {
 		}
 		
 		return false
-	}
-
-	public async getRoles(rolesList: Readonly<string[]>, source: string): Promise<Role[]> {
-		const roles: Role[] = []
-		for (const roleId of rolesList) {
-			const role = await this.guild.roles.fetch(roleId)
-			if (!role) {
-				this.logger.error(`Failed to fetch role with id: [${roleId}] from module: [${source}]`)
-				continue
-			}
-			roles.push(role)
-		}
-		return roles
 	}
 
 	/**

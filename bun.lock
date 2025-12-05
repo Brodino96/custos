@@ -1,10 +1,11 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
-      "name": "discord_moderator_bot",
+      "name": "custos",
       "dependencies": {
-        "discord.js": "^14.24.2",
+        "discord.js": "^14.25.1",
         "rolldown": "^1.0.0-beta.9-commit.d91dfb5",
         "typecatch": "^0.2.5",
       },

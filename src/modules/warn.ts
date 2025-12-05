@@ -1,4 +1,5 @@
-import { type GuildMember, type PartialGuildMember, type ContextMenuCommandInteraction, ApplicationCommandType, type CacheType } from "discord.js"
+import { ApplicationCommandType } from "discord.js"
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction } from "discord.js"
 import { BotModule } from "./botmodule"
 import Logger from "../utils/logger"
 import { tryCatch } from "typecatch"
@@ -122,7 +123,7 @@ export default class Warn extends BotModule {
 
     }
 
-    private async removeWarn(targetMember: GuildMember, interaction: ContextMenuCommandInteraction<CacheType>) {
+    private async removeWarn(targetMember: GuildMember, interaction: ContextMenuCommandInteraction) {
         if (await this.bot.isModerator(targetMember)) {
             interaction.editReply(`⛔ <@${targetMember.user.id}> is a moderator`)
             return this.logger.info(`Stopping because ${targetMember.user.username} is a moderator`)

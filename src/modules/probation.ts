@@ -1,6 +1,9 @@
 import { type GuildMember, type PartialGuildMember, type ContextMenuCommandInteraction, SlashCommandBuilder, ApplicationCommandType, ApplicationCommandOptionType, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
 import { BotModule } from "./botmodule"
-import Logger from "../utils/logger";
+import Logger from "../utils/logger"
+import { tryCatch } from "typecatch"
+import { sql } from "bun"
+import Locale from "../utils/locale"
 
 export default class Probation extends BotModule {
 
@@ -20,7 +23,31 @@ export default class Probation extends BotModule {
     }
 
     private async onCommand(interaction: ChatInputCommandInteraction) {
-        
+        const target = await this.bot.guild.members.fetch(interaction.options.getUser("User", true))
+
+        if (!target) {
+            interaction.editReply(Locale.generic.noTarget)
+            return this.logger.error(Locale.generic.noTarget)
+        }
+
+        if (await this.bot.isModerator(target)) {
+            interaction.editReply(`⛔ <@${target.user.id}> is a moderator`)
+            return this.logger.info(`Stopping because ${target.user.username} is a moderator`)
+        }
+
+        const { data, error } = await tryCatch(sql`
+            SELECT COUNT(*) AS count FROM probation WHERE user_id = ${target.user.id} AND active = TRUE
+        `)
+
+        if (error) {
+            interaction.editReply(Locale.generic.dbFailure)
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
+        }
+
+        if (data[0].count >= 0) {
+            interaction.editReply(`⛔ <@${target.user.id}> is already on probation`)
+            return this.logger.info(`${target.user.username} is already on probation`)
+        }
     }
 
     private async registerCommands() {

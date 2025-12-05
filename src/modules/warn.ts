@@ -62,7 +62,7 @@ export default class Warn extends BotModule {
 
         const targetMember = await this.bot.guild.members.fetch(interaction.targetId)
         if (!targetMember) {
-            await this.bot.reply(interaction, Locale.generic.noTarget)
+            interaction.editReply(Locale.generic.noTarget)
             return this.logger.error("Target member is null")
         }
 
@@ -80,7 +80,7 @@ export default class Warn extends BotModule {
 
     private async addWarn(target: GuildMember, interaction: ContextMenuCommandInteraction) {
         if (await this.bot.isModerator(target)) {
-            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is a moderator`)
+            interaction.editReply(`⛔ <@${target.user.id}> is a moderator`)
             return this.logger.info(`Stopping because ${target.user.username} is a moderator`)
         }
 
@@ -90,12 +90,12 @@ export default class Warn extends BotModule {
         `)
 
         if (error) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
         if (data[0].count >= this.config.roles.length) {
-            await this.bot.reply(interaction, `⛔ <@${target.user.id}> already has the maximum amount of warns`)
+            interaction.editReply(`⛔ <@${target.user.id}> already has the maximum amount of warns`)
             return this.logger.info(`${target.user.username} already has the maximum amount of warns`)
         }
 
@@ -111,11 +111,11 @@ export default class Warn extends BotModule {
                 VALUES (${target.user.id}, TRUE, NOW())
             `)
             if (error) {
-                await this.bot.reply(interaction, Locale.generic.dbFailure)
+                interaction.editReply(Locale.generic.dbFailure)
                 return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
             }
 
-            await this.bot.reply(interaction, `✅ <@${target.user.id}> has been warned`)
+            interaction.editReply(`✅ <@${target.user.id}> has been warned`)
 
             return
         }
@@ -124,7 +124,7 @@ export default class Warn extends BotModule {
 
     private async removeWarn(targetMember: GuildMember, interaction: ContextMenuCommandInteraction<CacheType>) {
         if (await this.bot.isModerator(targetMember)) {
-            await this.bot.reply(interaction, `⛔ <@${targetMember.user.id}> is a moderator`)
+            interaction.editReply(`⛔ <@${targetMember.user.id}> is a moderator`)
             return this.logger.info(`Stopping because ${targetMember.user.username} is a moderator`)
         }
 
@@ -135,12 +135,12 @@ export default class Warn extends BotModule {
         `)
 
         if (countError) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${countError}`)
         }
 
         if (activeWarns[0].count == 0) {
-            await this.bot.reply(interaction, `⛔ <@${targetMember.user.id}> has no active warns to remove`)
+            interaction.editReply(`⛔ <@${targetMember.user.id}> has no active warns to remove`)
             return this.logger.info(`${targetMember.user.username} has no active warns to remove`)
         }
 
@@ -150,7 +150,7 @@ export default class Warn extends BotModule {
         )`)
 
         if (updateError) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${updateError}`)
         }
 
@@ -162,7 +162,7 @@ export default class Warn extends BotModule {
             }
         }
 
-        await this.bot.reply(interaction, `✅ Removed one warn from <@${targetMember.user.id}>`)
+        interaction.editReply(`✅ Removed one warn from <@${targetMember.user.id}>`)
         this.logger.success(`Successfully removed warn from ${targetMember.user.username}`)
     }
 

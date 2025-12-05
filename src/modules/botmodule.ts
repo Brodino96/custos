@@ -1,4 +1,4 @@
-import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember } from "discord.js"
+import type { CommandInteraction, GuildMember, PartialGuildMember } from "discord.js"
 import type { Bot } from "../bot"
 import type { ConfigType } from "../utils/config"
 import type { MethodOf } from "../utils/types/methodof"
@@ -19,5 +19,5 @@ export abstract class BotModule {
 
 	abstract memberJoined(member: GuildMember): Promise<void>
 	abstract memberLeft(member: GuildMember | PartialGuildMember): Promise<void>
-	abstract contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void>
+	abstract contextInteraction(interaction: CommandInteraction, source: GuildMember): Promise<void>
 }

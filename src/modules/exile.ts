@@ -1,5 +1,5 @@
 import { User, ApplicationCommandType, ModalBuilder, TextInputStyle, TextInputBuilder, ActionRowBuilder } from "discord.js"
-import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, ModalSubmitInteraction, Snowflake } from "discord.js"
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, ModalSubmitInteraction, Snowflake, CommandInteraction } from "discord.js"
 import { BotModule } from "./botmodule"
 import Logger from "../utils/logger"
 import Locale from "../utils/locale"
@@ -89,7 +89,7 @@ export default class Exile extends BotModule {
      * @param interaction 
      * @param source The member that used the interaction
      */
-    public async contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void> {
+    public async contextInteraction(interaction: CommandInteraction, source: GuildMember): Promise<void> {
         if (interaction.isContextMenuCommand()) {
             this.onContextCommand(interaction)
         }
@@ -114,7 +114,9 @@ export default class Exile extends BotModule {
 
         const targetMember = await this.bot.guild.members.fetch(interaction.targetId)
         if (!targetMember) {
-            await this.bot.reply(interaction, Locale.generic.noTarget)
+            await interaction.editReply({
+                message: Locale.generic.noTarget,
+            })
             return this.logger.error("Target member is null")
         }
 
@@ -141,7 +143,7 @@ export default class Exile extends BotModule {
      */
     private async requestExileAdd(target: GuildMember, interaction: ContextMenuCommandInteraction) {
         if (await this.bot.isModerator(target)) {
-            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is a moderator`)
+            interaction.editReply(`⛔ <@${target.user.id}> is a moderator`)
             return this.logger.info(`Stopping because ${target.user.username} is a moderator`)
         }
 
@@ -151,12 +153,12 @@ export default class Exile extends BotModule {
         `)
 
         if (error) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(Locale.generic.dbFailure)
         }
 
         if (data.length > 0) {
-            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is already exiled`)
+            interaction.editReply(`⛔ <@${target.user.id}> is already exiled`)
             return this.logger.info(`${target.user.username} is already exiled`)
         }
 
@@ -205,13 +207,13 @@ export default class Exile extends BotModule {
         const durationDays = durationRaw.trim() === "" ? null : parseInt(durationRaw, 10)
 
         if (durationRaw && (!durationDays || durationDays < 0)) {
-            await this.bot.reply(interaction, `⛔ ${durationDays} is an invalid number of days`)
+            interaction.editReply(`⛔ ${durationDays} is an invalid number of days`)
             return this.logger.info(`${interaction.user.username} put an invalid number of days (${durationDays})`)
         }
 
         const targetMember = await this.bot.guild.members.fetch(targetId)
         if (!targetMember) {
-            await this.bot.reply(interaction, `⛔ <@${targetId}> doesn't exists`)
+            interaction.editReply(`⛔ <@${targetId}> doesn't exists`)
             return this.logger.error(`Failed to fetch user with id ${targetId}`)
         }
 
@@ -234,7 +236,7 @@ export default class Exile extends BotModule {
         `)
 
         if (error) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
@@ -243,7 +245,7 @@ export default class Exile extends BotModule {
             this.logger.error(`Failed to update roles for: ${targetMember.user.username}, ${roleUpdateError}`)
         }
 
-        await this.bot.reply(interaction, durationDays
+        interaction.editReply(durationDays
             ? `🕒 <@${targetId}> will be exiled for **${durationDays} days**.\nReason: ${reason}`
             : `⛔ <@${targetId}> will be **permanently exiled**.\nReason: ${reason}`,
         )
@@ -265,12 +267,12 @@ export default class Exile extends BotModule {
         `)
 
         if (error) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
         if (data.length == 0) {
-            await this.bot.reply(interaction, `⛔ <@${target.user.id}> is not exiled`)
+            interaction.editReply(`⛔ <@${target.user.id}> is not exiled`)
             return this.logger.info(`${target.user.username} is not exiled`)
         }
 
@@ -281,7 +283,7 @@ export default class Exile extends BotModule {
             this.logger.error(`Failed to update roles for: ${target.user.username}, ${roleUpdateError}`)
         }
 
-        await this.bot.reply(interaction, `✅ <@${target.user.id}> has been readmitted`)
+        interaction.editReply(`✅ <@${target.user.id}> has been readmitted`)
         this.logger.info(`${target.user.username} has been readmitted`)
     }
 
@@ -298,12 +300,12 @@ export default class Exile extends BotModule {
         `)
 
         if (error) {
-            await this.bot.reply(interaction, Locale.generic.dbFailure)
+            await interaction.editReply(Locale.generic.dbFailure)
             return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
         }
 
         if (data.length == 0) {
-            await this.bot.reply(interaction, `⛔ <@${user.id}> is not exiled`)
+            await interaction.editReply(`⛔ <@${user.id}> is not exiled`)
             return this.logger.info(`${user.username} is not exiled`)
         }
 
@@ -312,7 +314,7 @@ export default class Exile extends BotModule {
         this.logger.info(`Since: ${data[0].reason}`)
         this.logger.info(`Until: ${data[0].expires_at}`)
         
-        await this.bot.reply(interaction, `User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **Since**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
+        await interaction.editReply(`User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **Since**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
     }
 
     public async memberJoined(member: GuildMember): Promise<void> {

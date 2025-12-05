@@ -1,5 +1,5 @@
 import { Client, MessageFlags } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, Interaction, ModalSubmitInteraction, PartialGuildMember, Role } from "discord.js"
+import type { CommandInteraction, ContextMenuCommandInteraction, Guild, GuildMember, Interaction, ModalSubmitInteraction, PartialGuildMember, Role } from "discord.js"
 import type { BotModule, BotModuleMethod } from "./modules/botmodule"
 import type { ConfigType } from "./utils/config"
 import { tryCatch } from "typecatch"
@@ -60,21 +60,23 @@ export class Bot {
 		})
 
 		//@ts-ignore
-		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
+		this.client.on("interactionCreate", async (interaction: Interaction) => {
+			if (!interaction.isCommand()) { return }
 			this.logger.info(`${interaction.user.username} used the command "${interaction.commandName}"`)
 			this.onInteractionCreate(interaction)
 		})
 	}
 
-	private async onInteractionCreate(interaction: ContextMenuCommandInteraction) {
+	private async onInteractionCreate(interaction: CommandInteraction) {
 		const source = await this.guild.members.fetch(interaction.user.id)
+		interaction.deferReply({ flags: MessageFlags.Ephemeral })
 		if (!source) {
-			await this.reply(interaction, Locale.generic.noSource)
+			interaction.editReply(Locale.generic.noSource)
 			return this.logger.error(Locale.generic.noSource)
 		}
 
 		if (!this.isModerator(source)) {
-			await this.reply(interaction, Locale.generic.noPermission)
+			interaction.editReply(Locale.generic.noPermission)
 			return this.logger.warn(`${source.user.username} doesn't have permission to use commands`)
 		}
 
@@ -134,12 +136,5 @@ export class Bot {
 	 */
 	public async addModule(module: new (bot: Bot, config: ConfigType) => BotModule) {
 		this.modules.push(new module(this, this.config))
-	}
-
-	public async reply(interaction: ContextMenuCommandInteraction | ModalSubmitInteraction, message: string) {
-		interaction.reply({
-			content: message,
-			flags: MessageFlags.Ephemeral
-		})
 	}
 }

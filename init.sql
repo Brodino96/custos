@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS exiles (
+CREATE TABLE IF NOT EXISTS exile (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     reason TEXT,

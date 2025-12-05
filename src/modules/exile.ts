@@ -35,7 +35,7 @@ export default class Exile extends BotModule {
 
     public async memberJoined(member: GuildMember): Promise<void> {
         const { data, error } = await tryCatch(sql<{}[]>`
-            SELECT FROM exiles WHERE user_id = ${member.user.id} AND active = TRUE
+            SELECT FROM exile WHERE user_id = ${member.user.id} AND active = TRUE
         `)
 
         if (error) {
@@ -82,7 +82,7 @@ export default class Exile extends BotModule {
      */
     private async loop(): Promise<void> {
         const { data, error } = await tryCatch(sql<{ user_id: Snowflake, roles: string }[]>`
-            UPDATE exiles SET active = FALSE
+            UPDATE exile SET active = FALSE
             WHERE active = TRUE AND expires_at < NOW()
             RETURNING user_id, roles
         `)
@@ -161,7 +161,7 @@ export default class Exile extends BotModule {
 
         this.logger.info(`${interaction.user.username} requested ${target.user.username} exile add`)
         const { data, error } = await tryCatch(sql<{}[]>`
-            SELECT FROM exiles WHERE user_id = ${target.id} AND active = TRUE
+            SELECT FROM exile WHERE user_id = ${target.id} AND active = TRUE
         `)
 
         if (error) {
@@ -243,7 +243,7 @@ export default class Exile extends BotModule {
         this.logger.info(`${targetMember.user.username} has this roles: ${targetMember.roles.cache.map(role => role.name)}`)
         
         const { error } = await tryCatch(sql`
-            INSERT INTO exiles (user_id, reason, active, given_at, expires_at, roles)
+            INSERT INTO exile (user_id, reason, active, given_at, expires_at, roles)
             VALUES (${targetId}, ${reason}, TRUE, NOW(), ${expiresAt}, ${targetRoles})
         `)
 
@@ -273,7 +273,7 @@ export default class Exile extends BotModule {
     private async requestExileRemove(target: GuildMember, interaction: ContextMenuCommandInteraction) {
         this.logger.info(`${interaction.user.username} requested ${target.user.username} exile removal`)
         const { data, error } = await tryCatch(sql<{ roles: string }[]>`
-            UPDATE exiles SET active = FALSE
+            UPDATE exile SET active = FALSE
             WHERE user_id = ${target.user.id} AND active = TRUE
             RETURNING roles
         `)
@@ -308,7 +308,7 @@ export default class Exile extends BotModule {
     private async requestExileInfo(user: User, interaction: ContextMenuCommandInteraction) {
         this.logger.info(`${interaction.user.username} requested ${user.username} exile infos`)
         const { data, error } = await tryCatch(sql<{ reason: string, given_at: Date, expires_at: Date | null }[]>`
-            SELECT reason, given_at, expires_at FROM exiles WHERE user_id = ${user.id} AND active = TRUE
+            SELECT reason, given_at, expires_at FROM exile WHERE user_id = ${user.id} AND active = TRUE
         `)
 
         if (error) {

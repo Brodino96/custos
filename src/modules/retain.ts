@@ -5,13 +5,13 @@ import { tryCatch } from "typecatch"
 import { sql } from "bun"
 import Locale from "../utils/locale"
 
-export default class PersistentRoles extends BotModule {
+export default class Retain extends BotModule {
 
-    private readonly logger = new Logger("PersistentRoles")
+    private readonly logger = new Logger("Retain")
     private readonly exeptions = new Set()
 
     public async init(): Promise<void> {
-        this.logger.info("Initializing")
+        this.logger.info("Initializing module")
         for (const exileRole of this.baseConfig.exile.roles) {
             this.exeptions.add(exileRole)
         }
@@ -22,7 +22,7 @@ export default class PersistentRoles extends BotModule {
 
     public async memberJoined(member: GuildMember): Promise<void> {
         const { data, error } = await tryCatch(sql<{ roles: string }[]>`
-            SELECT roles FROM persistent_roles
+            SELECT roles FROM retain
             WHERE user_id = ${member.user.id}
             ORDER BY ABS(EXTRACT(EPOCH FROM given_at - NOW())) ASC
             LIMIT 1
@@ -51,7 +51,7 @@ export default class PersistentRoles extends BotModule {
             .map(role => role.id)
 
         const { error } = await tryCatch(sql`
-            INSERT INTO persistent_roles (user_id, given_at, roles)
+            INSERT INTO retain (user_id, given_at, roles)
             VALUES (${member.user.id}, NOW(), ${roles})
         `)
 
@@ -63,5 +63,5 @@ export default class PersistentRoles extends BotModule {
     }
 
     public async contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void> {}
-    
+
 }

@@ -1,14 +1,14 @@
 import { Bot } from "./bot"
 import loadConfig from "./utils/config"
 import Exile from "./modules/exile"
-import PersistentRoles from "./modules/persistentRoles"
+import Retain from "./modules/retain"
 import Warn from "./modules/warn"
 
 const config = loadConfig()
 const bot = new Bot(config)
 
 if (config.persistentRoles.enabled) {
-	bot.addModule(PersistentRoles)
+	bot.addModule(Retain)
 }
 
 if (config.exile.enabled) {

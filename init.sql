@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS exiles (
     roles TEXT
 );
 
-CREATE TABLE IF NOT EXISTS persistent_roles (
+CREATE TABLE IF NOT EXISTS retain (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

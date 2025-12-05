@@ -11,13 +11,40 @@ export default class Warn extends BotModule {
     private readonly config = this.baseConfig.warn
     private readonly logger = new Logger("Warn")
 
-    /**
-     * Initializes the module
-     */
     public async init(): Promise<void> {
         this.logger.info("Initializing module")
         this.registerCommands()
     }
+
+    public async contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void> {
+        if (interaction.isContextMenuCommand()) {
+            this.onContextCommand(interaction)
+        }
+    }
+
+    
+    public async memberJoined(member: GuildMember): Promise<void> {
+        const { data, error } = await tryCatch(sql<{}[]>`
+            SELECT FROM warns WHERE user_id = ${member.user.id} AND active = TRUE
+        `)
+
+        if (error) {
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
+        }
+
+        if (data.length === 0) {
+            return this.logger.info(`${member.user.username} is not warned`)
+        }
+
+        for (let i = 0; i < data.length; i++) {
+            member.roles.add(this.config.roles[i])
+        }
+
+        this.logger.info(`Restored warns roles for ${member.user.username}`)
+    }
+
+    public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
+
 
     /**
      * Registers commands
@@ -36,17 +63,6 @@ export default class Warn extends BotModule {
         ])
 
         this.logger.success("Registered commands")
-    }
-
-    /**
-     * Gets called whenever and interaction is used (commands)
-     * @param interaction 
-     * @param source The member that used the interaction
-     */
-    public async contextInteraction(interaction: ContextMenuCommandInteraction, source: GuildMember): Promise<void> {
-        if (interaction.isContextMenuCommand()) {
-            this.onContextCommand(interaction)
-        }
     }
 
     /**
@@ -79,6 +95,12 @@ export default class Warn extends BotModule {
         }
     }
 
+    /**
+     * Process of adding a warn to a user
+     * @param target The user about to get warned
+     * @param interaction Interaction
+     * @returns void
+     */
     private async addWarn(target: GuildMember, interaction: ContextMenuCommandInteraction) {
         if (await this.bot.isModerator(target)) {
             interaction.editReply(`⛔ <@${target.user.id}> is a moderator`)
@@ -123,6 +145,12 @@ export default class Warn extends BotModule {
 
     }
 
+    /**
+     * Process of removing a warn from a user
+     * @param targetMember The user about to get pardoned
+     * @param interaction Interaction
+     * @returns void
+     */
     private async removeWarn(targetMember: GuildMember, interaction: ContextMenuCommandInteraction) {
         if (await this.bot.isModerator(targetMember)) {
             interaction.editReply(`⛔ <@${targetMember.user.id}> is a moderator`)
@@ -167,26 +195,4 @@ export default class Warn extends BotModule {
         this.logger.success(`Successfully removed warn from ${targetMember.user.username}`)
     }
 
-
-    public async memberJoined(member: GuildMember): Promise<void> {
-        const { data, error } = await tryCatch(sql<{}[]>`
-            SELECT FROM warns WHERE user_id = ${member.user.id} AND active = TRUE
-        `)
-
-        if (error) {
-            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
-        }
-
-        if (data.length === 0) {
-            return this.logger.info(`${member.user.username} is not warned`)
-        }
-
-        for (let i = 0; i < data.length; i++) {
-            member.roles.add(this.config.roles[i])
-        }
-
-        this.logger.info(`Restored warns roles for ${member.user.username}`)
-    }
-
-    public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
 }

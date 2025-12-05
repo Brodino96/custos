@@ -10,10 +10,7 @@ export default class Exile extends BotModule {
     
     private readonly config = this.baseConfig.exile
     private readonly logger = new Logger("Exile")
-    
-    /**
-     * Initializes the module
-     */
+
     public async init(): Promise<void> {
         this.logger.info("Initializing module")
         this.registerCommands()
@@ -23,6 +20,60 @@ export default class Exile extends BotModule {
         setInterval(() => {
             this.loop()
         }, this.bot.checkInterval)
+    }
+
+    
+    public async contextInteraction(interaction: CommandInteraction, source: GuildMember): Promise<void> {
+        if (interaction.isContextMenuCommand()) {
+            this.onContextCommand(interaction)
+        }
+
+        if (interaction.isModalSubmit()) {
+            this.onModalSumbit(interaction)
+        }       
+    }
+
+    public async memberJoined(member: GuildMember): Promise<void> {
+        const { data, error } = await tryCatch(sql<{}[]>`
+            SELECT FROM exiles WHERE user_id = ${member.user.id} AND active = TRUE
+        `)
+
+        if (error) {
+            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
+        }
+
+        if (data.length === 0) {
+            return this.logger.info(`${member.user.username} is not exiled`)
+        }
+
+        await tryCatch(member.roles.add(this.config.roles))
+        this.logger.info(`Restored exile roles for ${member.user.username}`)
+    }
+
+    public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
+
+    /**
+     * Registers commands
+     */
+    private async registerCommands(): Promise<void> {
+        await Promise.all([
+            this.bot.guild.commands.create({
+                name: "Exile add",
+                type: ApplicationCommandType.User
+            }),
+
+            this.bot.guild.commands.create({
+                name: "Exile remove",
+                type: ApplicationCommandType.User
+            }),
+
+            this.bot.guild.commands.create({
+                name: "Exile info",
+                type: ApplicationCommandType.User
+            })
+        ])
+        
+        this.logger.success("Registered commands")
     }
 
     /**
@@ -58,45 +109,6 @@ export default class Exile extends BotModule {
             
             this.logger.success(`${member.user.username}'s exile expired`)
         }
-    }
-    
-    /**
-     * Registers commands
-     */
-    private async registerCommands(): Promise<void> {
-        await Promise.all([
-            this.bot.guild.commands.create({
-                name: "Exile add",
-                type: ApplicationCommandType.User
-            }),
-
-            this.bot.guild.commands.create({
-                name: "Exile remove",
-                type: ApplicationCommandType.User
-            }),
-
-            this.bot.guild.commands.create({
-                name: "Exile info",
-                type: ApplicationCommandType.User
-            })
-        ])
-        
-        this.logger.success("Registered commands")
-    }
-
-    /**
-     * Gets called whenever and interaction is used (commands)
-     * @param interaction 
-     * @param source The member that used the interaction
-     */
-    public async contextInteraction(interaction: CommandInteraction, source: GuildMember): Promise<void> {
-        if (interaction.isContextMenuCommand()) {
-            this.onContextCommand(interaction)
-        }
-
-        if (interaction.isModalSubmit()) {
-            this.onModalSumbit(interaction)
-        }       
     }
 
     /**
@@ -317,22 +329,4 @@ export default class Exile extends BotModule {
         await interaction.editReply(`User <@${user.id}> is exiled:\n📒 **Reason**: ${data[0].reason},\n🕛 **Since**: ${data[0].given_at},\n📅 **Until**: ${data[0].expires_at}`)
     }
 
-    public async memberJoined(member: GuildMember): Promise<void> {
-        const { data, error } = await tryCatch(sql<{}[]>`
-            SELECT FROM exiles WHERE user_id = ${member.user.id} AND active = TRUE
-        `)
-
-        if (error) {
-            return this.logger.error(`${Locale.generic.dbFailure}, ${error}`)
-        }
-
-        if (data.length === 0) {
-            return this.logger.info(`${member.user.username} is not exiled`)
-        }
-
-        await tryCatch(member.roles.add(this.config.roles))
-        this.logger.info(`Restored exile roles for ${member.user.username}`)
-    }
-
-    public async memberLeft(member: GuildMember | PartialGuildMember): Promise<void> {}
 }

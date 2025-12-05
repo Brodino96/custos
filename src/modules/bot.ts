@@ -1,5 +1,5 @@
 import { Client } from "discord.js"
-import type { ContextMenuCommandInteraction, Guild, GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { ContextMenuCommandInteraction, Guild, GuildMember, Interaction, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import type { BotModuleMethod } from "../utils/types/botmodule"
 import type { ConfigType } from "../utils/config"
 import { tryCatch } from "typecatch"
@@ -61,7 +61,7 @@ export class Bot {
 		})
 
 		//@ts-ignore
-		this.client.on("interactionCreate", async (interaction: ContextMenuCommandInteraction) => {
+		this.client.on("interactionCreate", async (interaction: Interaction) => {
 			this.callModule("contextInteraction", interaction)
 		})
 	}
@@ -118,5 +118,5 @@ export abstract class BotModule {
 
 	abstract memberJoined(member: GuildMember): Promise<void>
 	abstract memberLeft(member: GuildMember | PartialGuildMember): Promise<void>
-	abstract contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void>
+	abstract contextInteraction(interaction: Interaction): Promise<void>
 }

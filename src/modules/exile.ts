@@ -1,5 +1,5 @@
 import { MessageFlags, ApplicationCommandOptionType, ChatInputCommandInteraction, User, ApplicationCommandType } from "discord.js"
-import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role } from "discord.js"
+import type { GuildMember, PartialGuildMember, ContextMenuCommandInteraction, Role, Interaction } from "discord.js"
 import { BotModule } from "./bot"
 import Logger from "../utils/logger"
 import Locale from "../utils/locale"
@@ -45,7 +45,7 @@ export default class Exile extends BotModule {
         Logger.info(`exile: Registered commands`)
     }
 
-    public async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {
+    public async contextInteraction(interaction: Interaction): Promise<void> {
         if (!interaction.isContextMenuCommand()) { return }
 
         switch (interaction.commandName) {

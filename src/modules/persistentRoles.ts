@@ -1,4 +1,4 @@
-import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember } from "discord.js"
+import type { ContextMenuCommandInteraction, GuildMember, Interaction, PartialGuildMember } from "discord.js"
 import { BotModule } from "./bot"
 import { sql } from "bun"
 import { tryCatch } from "typecatch"
@@ -95,5 +95,5 @@ export default class PersistentRoles extends BotModule {
         }
     }
 
-    async contextInteraction(_interaction: ContextMenuCommandInteraction): Promise<void> {}
+    async contextInteraction(_interaction: Interaction): Promise<void> {}
 }

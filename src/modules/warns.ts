@@ -1,5 +1,5 @@
 import { ApplicationCommandType, MessageFlags, UserContextMenuCommandInteraction } from "discord.js"
-import type { GuildMember, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
+import type { GuildMember, Interaction, Message, PartialGuildMember, Role, Snowflake } from "discord.js"
 import { BotModule } from "./bot"
 import { sql } from "bun"
 import { tryCatch } from "typecatch"
@@ -55,8 +55,8 @@ export default class Warns extends BotModule {
      * @param interaction discord.js stuff
      * @returns void
      */
-    public async contextInteraction(interaction: UserContextMenuCommandInteraction): Promise<void> {
-        if (!interaction.isContextMenuCommand()) { return }
+    public async contextInteraction(interaction: Interaction): Promise<void> {
+        if (!interaction.isUserContextMenuCommand()) { return }
 
         const member = await this.bot.guild?.members.fetch(interaction.user.id)
 

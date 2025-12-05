@@ -1,5 +1,5 @@
 import { sql } from "bun"
-import type { ContextMenuCommandInteraction, GuildMember, PartialGuildMember, Role } from "discord.js"
+import type { ContextMenuCommandInteraction, GuildMember, Interaction, PartialGuildMember, Role } from "discord.js"
 import { BotModule } from "./bot"
 import { tryCatch } from "typecatch"
 import Logger from "../utils/logger"
@@ -108,5 +108,5 @@ export default class joinRoles extends BotModule {
 		}
 	}
 
-	async contextInteraction(interaction: ContextMenuCommandInteraction): Promise<void> {}
+	async contextInteraction(interaction: Interaction): Promise<void> {}
 }

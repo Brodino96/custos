@@ -25,7 +25,7 @@ export default class Warn extends BotModule {
     
     public async memberJoined(member: GuildMember): Promise<void> {
         const { data, error } = await tryCatch(sql<{}[]>`
-            SELECT FROM warns WHERE user_id = ${member.user.id} AND active = TRUE
+            SELECT FROM warn WHERE user_id = ${member.user.id} AND active = TRUE
         `)
 
         if (error) {
@@ -109,7 +109,7 @@ export default class Warn extends BotModule {
 
         this.logger.info(`${interaction.user.username} requested ${target.user.username} warn add`)
         const { data, error } = await tryCatch(sql<{ count: number }[]>`
-            SELECT COUNT(*) AS count FROM warns WHERE user_id = ${target.id} AND active = TRUE
+            SELECT COUNT(*) AS count FROM warn WHERE user_id = ${target.id} AND active = TRUE
         `)
 
         if (error) {
@@ -130,7 +130,7 @@ export default class Warn extends BotModule {
             await target.roles.add(warnRole)
 
             const { error } = await tryCatch(sql`
-                INSERT INTO warns (user_id, active, given_at)
+                INSERT INTO warn (user_id, active, given_at)
                 VALUES (${target.user.id}, TRUE, NOW())
             `)
             if (error) {
@@ -160,7 +160,7 @@ export default class Warn extends BotModule {
         this.logger.info(`${interaction.user.username} requested ${targetMember.user.username} warn removal`)
 
         const { data: activeWarns, error: countError } = await tryCatch(sql<{ count: number }[]>`
-            SELECT COUNT(*) AS count FROM warns WHERE user_id = ${targetMember.id} AND active = TRUE
+            SELECT COUNT(*) AS count FROM warn WHERE user_id = ${targetMember.id} AND active = TRUE
         `)
 
         if (countError) {
@@ -174,8 +174,8 @@ export default class Warn extends BotModule {
         }
 
         const { error: updateError } = await tryCatch(sql`
-            UPDATE warns SET active = FALSE WHERE ID = (
-                SELECT ID FROM warns WHERE user_id = ${targetMember.user.id} AND active = TRUE ORDER BY ID LIMIT 1
+            UPDATE warn SET active = FALSE WHERE ID = (
+                SELECT ID FROM warn WHERE user_id = ${targetMember.user.id} AND active = TRUE ORDER BY ID LIMIT 1
         )`)
 
         if (updateError) {

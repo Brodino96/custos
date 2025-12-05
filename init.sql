@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS exile (
     id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id BIGINT NOT NULL,
     reason TEXT,
     active BOOLEAN NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -10,16 +10,21 @@ CREATE TABLE IF NOT EXISTS exile (
 
 CREATE TABLE IF NOT EXISTS retain (
     id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id BIGINT NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     roles TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS warn (
     id SERIAL PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id BIGINT NOT NULL,
     active BOOLEAN NOT NULL,
     given_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+),
+
+CREATE TABLE IF NOT EXISTS probation (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL
 )
 
 /*

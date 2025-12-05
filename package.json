@@ -1,6 +1,7 @@
 {
 	"name": "custos",
 	"module": "src/main.ts",
+	"version": "1.0.0",
 	"scripts": {
 		"dev": "bunx rolldown -c",
 		"bundle": "tsc --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c"

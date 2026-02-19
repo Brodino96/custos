@@ -1,0 +1,56 @@
+# Custos Config
+
+# How often the bot performs checks on the database (in hours)
+checkInterval: 2
+
+# Logging level
+# 0 = disabled, 1 = errors only, 2 = errors + warnings, 3 = errors + warnings + info
+logLevel: 3
+
+# Discord bot configuration
+bot:
+  # Your Discord bot token
+  token: PUT_YOUR_DISCORD_BOT_TOKEN_HERE
+  # Guild (server) ID
+  guildId: "111111111111111111"
+  # Bot client ID
+  clientId: "111111111111111111"
+  # Role IDs that can use moderator commands
+  moderatorRoles:
+    - "111111111111111111"
+
+# Persistent roles: reapplies roles when a user rejoins the server
+persistentRoles:
+  enabled: true
+
+# Warns: assigns a role to mark the user as warned
+# The more roles configured, the more warn assignable
+# Example: player, commoner => (add warn) => player, commoner, warned
+# I recommend to configure all warn roles with the same name since it will give and remove the first available
+warn:
+  enabled: true
+  roles:
+    - "111111111111111111"
+
+# Exile: a fake ban that strips all the user roles and assigns a new ones to them
+# Example: player, commoner => (exile the player) => exiled
+exile:
+  enabled: true
+  roles:
+    - "111111111111111111"
+
+# Probation: temporary roles that are given to the player when he joins the server
+# After the expiration date it will remove the previous ones and give then new ones
+# Example: (logs in) => newPlayer, commoner => (30 days) => player, commoner
+probation:
+  enabled: true
+  # Duration in days
+  duration: 30
+  # Role transformation
+  roles:
+    from:
+      - "111111111111111111"
+      - "111111111111111111"
+    to:
+      - "111111111111111111"
+      - "111111111111111111"

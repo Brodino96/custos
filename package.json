@@ -16,6 +16,7 @@
 	"dependencies": {
 		"discord.js": "^14.25.1",
 		"rolldown": "^1.0.0-beta.9-commit.d91dfb5",
-		"typecatch": "^0.2.5"
+		"typecatch": "^0.2.5",
+		"zod": "^4.3.6"
 	}
 }

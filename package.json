@@ -4,10 +4,12 @@
 	"version": "1.0.0",
 	"scripts": {
 		"dev": "bunx rolldown -c",
-		"bundle": "tsgo --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c"
+		"bundle": "tsgo --isolatedModules -p tsconfig.json --skipLibCheck && bunx rolldown -c",
+		"format": "bunx biome format --write"
 	},
 	"type": "module",
 	"devDependencies": {
+		"@biomejs/biome": "2.4.2",
 		"@types/bun": "latest"
 	},
 	"peerDependencies": {

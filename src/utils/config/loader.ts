@@ -16,7 +16,7 @@ interface MissingField {
 function mergeConfig(
 	target: Record<string, unknown>,
 	source: Record<string, unknown>,
-	currentPath = "",
+	currentPath = ""
 ): MissingField[] {
 	const missing: MissingField[] = []
 
@@ -44,7 +44,7 @@ function mergeConfig(
 			const nestedMissing = mergeConfig(
 				targetValue as Record<string, unknown>,
 				sourceValue as Record<string, unknown>,
-				fieldPath,
+				fieldPath
 			)
 			missing.push(...nestedMissing)
 		}
@@ -68,7 +68,7 @@ export async function loadConfig(): Promise<Config> {
 		defaultConfig = parse(defaultText) as Record<string, unknown>
 	} catch (error) {
 		throw new Error(
-			`Failed to read or parse default config at ${DEFAULT_CONFIG_PATH}: ${error}`,
+			`Failed to read or parse default config at ${DEFAULT_CONFIG_PATH}: ${error}`
 		)
 	}
 
@@ -83,7 +83,7 @@ export async function loadConfig(): Promise<Config> {
 			await Bun.write(USER_CONFIG_PATH, defaultText)
 		} catch (error) {
 			throw new Error(
-				`Failed to create config at ${USER_CONFIG_PATH}: ${error}`,
+				`Failed to create config at ${USER_CONFIG_PATH}: ${error}`
 			)
 		}
 
@@ -93,7 +93,7 @@ export async function loadConfig(): Promise<Config> {
 		const validation = configSchema.safeParse(defaultConfig)
 		if (!validation.success) {
 			throw new Error(
-				`Default config validation failed: ${validation.error.message}`,
+				`Default config validation failed: ${validation.error.message}`
 			)
 		}
 
@@ -108,7 +108,7 @@ export async function loadConfig(): Promise<Config> {
 		userConfig = parse(userText) as Record<string, unknown>
 	} catch (error) {
 		throw new Error(
-			`Failed to read or parse user config at ${USER_CONFIG_PATH}: ${error}`,
+			`Failed to read or parse user config at ${USER_CONFIG_PATH}: ${error}`
 		)
 	}
 
@@ -122,7 +122,7 @@ export async function loadConfig(): Promise<Config> {
 
 		const mergedYaml = stringify(userConfig, {
 			indent: 2,
-			lineWidth: 80,
+			lineWidth: 80
 		})
 
 		try {
@@ -139,6 +139,10 @@ export async function loadConfig(): Promise<Config> {
 	const validation = configSchema.safeParse(userConfig)
 
 	if (!validation.success) {
+		logger.info("yer")
+	}
+
+	if (!validation.success) {
 		logger.error(`Config validation failed:`)
 
 		for (const issue of validation.error.issues) {
@@ -147,7 +151,7 @@ export async function loadConfig(): Promise<Config> {
 		}
 
 		throw new Error(
-			`Config validation failed. Please check ${USER_CONFIG_PATH}`,
+			`Config validation failed. Please check ${USER_CONFIG_PATH}`
 		)
 	}
 

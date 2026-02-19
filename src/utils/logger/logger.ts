@@ -41,7 +41,7 @@ export class Logger {
 		const formattedArgs = this.formatArgs(args)
 
 		console.log(
-			`${gray(timestamp)} ${colorFn(`[${level}]`)} ${this.moduleName}: ${formattedArgs}`,
+			`${gray(timestamp)} ${colorFn(`[${level}]`)} ${this.moduleName}: ${formattedArgs}`
 		)
 	}
 

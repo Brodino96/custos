@@ -4,5 +4,5 @@ export const LOG_LEVEL = {
 	DISABLED: 0,
 	ERROR: 1,
 	WARN: 2,
-	INFO: 3,
+	INFO: 3
 } as const

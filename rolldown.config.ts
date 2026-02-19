@@ -6,7 +6,8 @@ export default defineConfig([
 		output: {
 			file: "dist/main.js",
 			target: "esnext",
+			minify: true
 		},
-		external: [ /node_modules/ ]
+		//external: [ /node_modules/ ]
 	},
 ])
